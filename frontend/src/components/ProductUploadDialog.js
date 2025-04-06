@@ -69,7 +69,6 @@ const ProductUploadDialog = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle Submit
   const handleSubmit = () => {
     if (validateForm()) {
       onSubmit(); 

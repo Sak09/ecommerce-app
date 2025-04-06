@@ -1,10 +1,10 @@
 import React from 'react'
-import logo from '../assest/logo.jpg'
+import logo from '../assets/logo.png'
 import { styled } from '@mui/material/styles';
 
 const Logo = () => {
   const StyledLogo = styled('img')(({ theme }) => ({
-    width: '150px',
+    width: '60px',
     height: 'auto',
    
   }));

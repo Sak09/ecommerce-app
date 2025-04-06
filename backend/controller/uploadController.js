@@ -1,7 +1,6 @@
 
 async function uploadController(req, res) {
     try {
-        // Check if a file was uploaded
         if (!req.file) {
             return res.status(400).json({
                 success: false,
