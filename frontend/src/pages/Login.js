@@ -44,7 +44,7 @@ const Login = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data), // Send login data
+        body: JSON.stringify(data), 
       });
   
       const dataApi = await dataResponse.json();
@@ -53,16 +53,15 @@ const Login = () => {
       if (dataApi.success) {
         console.log("Login successful");
   
-        // Show success alert
         setShowsuccessalert(true);
   
-        // Fetch user details
+    
         if (fetchUserDetails) await fetchUserDetails();
   
-        // Delay navigation to allow alert display
+    
         setTimeout(() => {
-          navigate('/'); // Navigate after success
-          setShowsuccessalert(false); // Hide alert after navigating
+          navigate('/'); 
+          setShowsuccessalert(false);
         }, 2000);
       } else {
         console.error("Login failed:", dataApi.message);

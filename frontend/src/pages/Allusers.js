@@ -10,7 +10,7 @@ const AllUsers = () => {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Function to fetch all users
+  
   const fetchAllUsers = async () => {
     try {
       const token = document.cookie
@@ -107,20 +107,18 @@ const AllUsers = () => {
         !loading && <p>No users found.</p>
       )}
 
-      {/* Edit User Dialog */}
+      
       {selectedUser && (
         <EditUserDialog
           open={open}
           handleClose={handleClose}
           user={selectedUser}
-          fetchAllUsers={fetchAllUsers} // Pass function to refresh users after update
+          fetchAllUsers={fetchAllUsers} 
         />
       )}
     </div>
   );
 };
-
-// Styles
 const tableHeaderStyle = {
   padding: "10px",
   textAlign: "left",

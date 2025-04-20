@@ -28,7 +28,11 @@ const summaryapi = {
     method : "get"
   },
   updateuser : {
-    url : `${baseurl}/api//update-user`,
+    url : `${baseurl}/api/update-user`,
+    method : "post"
+  },
+  uploadProduct : {
+    url : `${baseurl}/api/product`,
     method : "post"
   }
 };

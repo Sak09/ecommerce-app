@@ -11,6 +11,7 @@ const uploadController =require('../controller/uploadController');
 const logoutController = require('../controller/logoutController');
 const Allusers = require('../controller/allUsers');
 const updateUser = require('../controller/updateUser');
+const productController = require('../controller/productController');
 
 
 router.post("/signup", signUpController);
@@ -33,4 +34,5 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post("/upload", upload.single("file"), uploadController)
+router.post("/product", auth,productController);
 module.exports = router;

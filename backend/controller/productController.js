@@ -1,7 +1,13 @@
-const productModel = require('../models/productModel'); // adjust path if needed
+const uploadproductPermission = require('../middleware/permission');
+const productModel = require('../models/product')
+
 
 async function productController(req, res) {
     try {
+        const UserId = req.UserId
+        if(!uploadproductPermission(UserId)) {
+            throw new Error("Permission denied");
+        }
         const { productName, brandName, category, description, price } = req.body;
 
     

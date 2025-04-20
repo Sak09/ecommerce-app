@@ -16,6 +16,8 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import Productcategory from "../helpers/productCtegory";
 import uploadimage from "../helpers/Imageupload";
 import ImagePreviewDialog from "./ImagePreviewDialog";
+import summaryapi from "../common";
+import { toast } from "react-toastify";
 
 const ProductUploadDialog = ({
   open,
@@ -52,6 +54,11 @@ const ProductUploadDialog = ({
       console.error("Image upload failed:", error);
     }
   };
+  const token = document.cookie
+  .split("; ")
+  .find((row) => row.startsWith("access-token="))
+  ?.split("=")[1];
+  
   const validateForm = () => {
     let newErrors = {};
     if (!product.name.trim()) newErrors.name = "Product name is required.";
@@ -69,11 +76,48 @@ const ProductUploadDialog = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      onSubmit(); 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (!validateForm()) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(summaryapi.uploadProduct.url, {
+        method: summaryapi.uploadProduct.method,
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify(product),
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok) {
+        toast.success("Product uploaded successfully!");
+        setProduct({
+          name: "",
+          category: "",
+          brand: "",
+          price: "",
+          selling: "",
+          description: "",
+          image: [],
+        });
+        onClose(); 
+      } else {
+        toast.error(result.message || "Failed to upload product.");
+      }
+    } catch (error) {
+      console.error("Error while submitting:", error);
+      toast.error("Something went wrong. Please try again.");
     }
   };
+  
   return (
     <>
       <Dialog open={open} onClose={onClose}>
