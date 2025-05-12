@@ -22,14 +22,20 @@ import { toast } from "react-toastify";
 const ProductUploadDialog = ({
   open,
   onClose,
-  product,
-  onChange,
-  onSubmit,
-  setProduct,
+  Productlist
 }) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [errors, setErrors] = useState({});
+  const [product, setProduct] = useState({
+    name: "",
+    category: "",
+    brand: "",
+    image: [],
+    price: "",
+    sellingprice: "",
+    description: "",
+  });
 
   const handleImageUpload = async (event) => {
     const files = event.target.files; 
@@ -65,8 +71,8 @@ const ProductUploadDialog = ({
     if (!product.category.trim()) newErrors.category = "Category is required.";
     if (!product.brand.trim()) newErrors.brand = "Brand name is required.";
     if (!product.price.trim()) newErrors.price = "Price is required.";
-    if (!product.selling.trim())
-      newErrors.selling = "Selling price is required.";
+    if (!product.sellingprice.trim())
+      newErrors.sellingprice = "Selling price is required.";
     if (!product.description.trim())
       newErrors.description = "Description is required.";
     if (product.image.length === 0)
@@ -75,6 +81,10 @@ const ProductUploadDialog = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  const handleChange = (e) => {
+    const {name, value} =e.target;
+    setProduct((prev) =>({...prev, [name]: value}));
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,10 +114,11 @@ const ProductUploadDialog = ({
           category: "",
           brand: "",
           price: "",
-          selling: "",
+          sellingprice: "",
           description: "",
           image: [],
         });
+        await Productlist();
         onClose(); 
       } else {
         toast.error(result.message || "Failed to upload product.");
@@ -128,7 +139,7 @@ const ProductUploadDialog = ({
             name="name"
             fullWidth
             margin="dense"
-            onChange={onChange}
+            onChange={handleChange}
             value={product.name}
             error={!!errors.name}
             helperText={errors.name}
@@ -138,7 +149,7 @@ const ProductUploadDialog = ({
             <Select
               name="category"
               value={product.category}
-              onChange={onChange}
+              onChange={handleChange }
             >
               {Productcategory.map((item, index) => (
                 <MenuItem key={index} value={item}>
@@ -157,7 +168,7 @@ const ProductUploadDialog = ({
             name="brand"
             fullWidth
             margin="dense"
-            onChange={onChange}
+            onChange={handleChange}
             value={product.brand}
             error={!!errors.brand}
             helperText={errors.brand}
@@ -209,7 +220,7 @@ const ProductUploadDialog = ({
             type="number"
             fullWidth
             margin="dense"
-            onChange={onChange}
+            onChange={handleChange}
             value={product.price}
             error={!!errors.price}
             helperText={errors.price}
@@ -217,14 +228,14 @@ const ProductUploadDialog = ({
 
           <TextField
             label="Selling Price"
-            name="selling"
+            name="sellingprice"
             type="number"
             fullWidth
             margin="dense"
-            onChange={onChange}
-            value={product.selling}
-            error={!!errors.selling}
-            helperText={errors.selling}
+            onChange={handleChange}
+            value={product.sellingprice}
+            error={!!errors.sellingprice}
+            helperText={errors.sellingprice}
           />
 
           <TextField
@@ -234,7 +245,7 @@ const ProductUploadDialog = ({
             margin="dense"
             multiline
             rows={3}
-            onChange={onChange}
+            onChange={handleChange}
             value={product.description}
             error={!!errors.description}
             helperText={errors.description}

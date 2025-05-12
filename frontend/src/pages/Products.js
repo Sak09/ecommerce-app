@@ -1,23 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
 import ProductUploadDialog from "../components/ProductUploadDialog";
+import summaryapi from "../common";
 const Products = () => {
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState([]); 
-  const [product, setProduct] = useState({ name: "", category: "", brand: "", image: [], price: "", selling: "", description: "" });
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  console.log("products",products)
+  const token = document.cookie
+  .split("; ")
+  .find((row) => row.startsWith("access-token="))
+  ?.split("=")[1];
 
-  const handleChange = (e) => {
-    setProduct({ ...product, [e.target.name]: e.target.value });
-  };
+  
 
-  const handleSubmit = () => {
-    setProducts([...products, product]);
-    setProduct({ name: "", category: "", brand: "", image: [],  price: "", selling: "", description: "" }); // Reset form
-    handleClose();
+  const fetchAllProducts = async () => {
+    try {
+      const response = await fetch(summaryapi.allproducts.url);
+  
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
   };
+  
+ 
+  useEffect(() => {
+    fetchAllProducts();
+  }, []);
+  
+  
 
   return (
     <div style={{ padding: "20px" }}>
@@ -28,20 +43,15 @@ const Products = () => {
         Upload Product
       </Button>
 
-      {/* Upload Dialog */}
       <ProductUploadDialog
         open={open}
         onClose={handleClose}
-        product={product}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-        setProduct={setProduct}
+        
       />
 
-      {/* Display Uploaded Products */}
       <div style={{ display: "flex", flexWrap: "wrap", marginTop: "20px", gap: "20px" }}>
-        {products.length > 0 ? (
-          products.map((item, index) => (
+        {products?.data?.length > 0 ? (
+          products.data.map((item, index) => (
             <Card key={index} style={{ width: "200px" }}>
               <CardMedia
                 component="img"

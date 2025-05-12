@@ -34,6 +34,10 @@ const summaryapi = {
   uploadProduct : {
     url : `${baseurl}/api/product`,
     method : "post"
+  },
+  allproducts : {
+    url : `${baseurl}/api/all-products`,
+    method : "get"
   }
 };
 

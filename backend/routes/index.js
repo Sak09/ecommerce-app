@@ -7,11 +7,11 @@ const signUpController = require("../controller/signUpController");
 const loginController = require("../controller/loginController");
 const userDetailController = require('../controller/userDetailsController');
 const auth = require('../middleware/auth');
-const uploadController =require('../controller/uploadController');
+const uploadController = require('../controller/uploadController').default;
 const logoutController = require('../controller/logoutController');
 const Allusers = require('../controller/allUsers');
 const updateUser = require('../controller/updateUser');
-const productController = require('../controller/productController');
+const { addproduct, getAllproduct } = require('../controller/productController');
 
 
 router.post("/signup", signUpController);
@@ -34,5 +34,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post("/upload", upload.single("file"), uploadController)
-router.post("/product", auth,productController);
+router.post("/product", auth, addproduct);
+router.get("/all-products",getAllproduct)
 module.exports = router;

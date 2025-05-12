@@ -25,13 +25,11 @@ async function updateUser(req, res) {
             });
         }
 
-        // Create payload only for provided fields
         const payload = {};
         if (email) payload.email = email;
         if (name) payload.name = name;
         if (role) payload.role = role;
 
-        // Find and update the user, returning the updated document
         const updatedUser = await userModel.findByIdAndUpdate(id, payload, { new: true });
 
         if (!updatedUser) {
