@@ -7,18 +7,17 @@ async function addproduct(req, res) {
     if (!uploadproductPermission(UserId)) {
       throw new Error("Permission denied");
     }
-    const { name, brandName, category, description, price } = req.body;
+    const { name, brandName, category, description, price, image } = req.body;
+    //  let productImage = [];
+    // if (image) {
+    //   productImage.push(image.path);
+    // } else if (req.files) {
+    //   req.files.forEach((file) => {
+    //     productImage.push(file.path);
+    //   });
+    // }
 
-    let productImage = [];
-
-    if (req.file) {
-      productImage.push(req.file.path);
-    } else if (req.files) {
-      req.files.forEach((file) => {
-        productImage.push(file.path);
-      });
-    }
-
+     const productImage = Array.isArray(image) ? image : [image];
     const newProduct = new productModel({
       name,
       brandName,

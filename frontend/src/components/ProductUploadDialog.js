@@ -108,6 +108,7 @@ const ProductUploadDialog = ({
       const result = await response.json();
   
       if (response.ok) {
+        console.log("oo",result);
         toast.success("Product uploaded successfully!");
         setProduct({
           name: "",
