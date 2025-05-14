@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
+import { Button, Card, CardContent, CardMedia, Typography,CardActions,IconButton } from "@mui/material";
 import ProductUploadDialog from "../components/ProductUploadDialog";
 import summaryapi from "../common";
+import EditIcon from '@mui/icons-material/Edit';
+import { toast } from "react-toastify";
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 const Products = () => {
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState([]); 
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  console.log("products",products)
   const token = document.cookie
   .split("; ")
   .find((row) => row.startsWith("access-token="))
   ?.split("=")[1];
+  
 
   
 
@@ -31,6 +34,59 @@ const Products = () => {
   useEffect(() => {
     fetchAllProducts();
   }, []);
+  const handleDelete = async (productId) => {
+  
+
+  if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+  try {
+    const response = await fetch(`/api/products/${productId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: token,
+      },
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      toast.success("Product deleted successfully");
+      // fetchProducts(); 
+    } else {
+      toast.error(result.message || "Failed to delete product");
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    toast.error("Something went wrong while deleting product");
+  }
+};
+const handleEdit = async (updatedProduct) => {
+ 
+  try {
+    const response = await fetch(`/api/products/${updatedProduct._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+      body: JSON.stringify(updatedProduct),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      toast.success("Product updated successfully");
+      // fetchProducts();
+    } else {
+      toast.error(result.message || "Failed to update product");
+    }
+  } catch (error) {
+    console.error("Error editing product:", error);
+    toast.error("Something went wrong while editing product");
+  }
+};
+
+
   
   
 
@@ -66,6 +122,14 @@ const Products = () => {
                 </Typography>
                 
               </CardContent>
+               <CardActions>
+        <IconButton color="primary" onClick={() => handleEdit(item)}>
+          <EditIcon />
+        </IconButton>
+        <IconButton color="error" onClick={() => handleDelete(item._id)}>
+          <DeleteForeverIcon />
+        </IconButton>
+      </CardActions>
             </Card>
           ))
         ) : (
