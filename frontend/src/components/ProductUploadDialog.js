@@ -30,7 +30,7 @@ const ProductUploadDialog = ({
   const [product, setProduct] = useState({
     name: "",
     category: "",
-    brand: "",
+    brandName: "",
     image: [],
     price: "",
     sellingprice: "",
@@ -69,7 +69,7 @@ const ProductUploadDialog = ({
     let newErrors = {};
     if (!product.name.trim()) newErrors.name = "Product name is required.";
     if (!product.category.trim()) newErrors.category = "Category is required.";
-    if (!product.brand.trim()) newErrors.brand = "Brand name is required.";
+    if (!product.brandName.trim()) newErrors.brandName = "Brand name is required.";
     if (!product.price.trim()) newErrors.price = "Price is required.";
     if (!product.sellingprice.trim())
       newErrors.sellingprice = "Selling price is required.";
@@ -113,7 +113,7 @@ const ProductUploadDialog = ({
         setProduct({
           name: "",
           category: "",
-          brand: "",
+          brandName: "",
           price: "",
           sellingprice: "",
           description: "",
@@ -166,13 +166,13 @@ const ProductUploadDialog = ({
           </FormControl>
           <TextField
             label="Brand Name"
-            name="brand"
+            name="brandName"
             fullWidth
             margin="dense"
             onChange={handleChange}
-            value={product.brand}
-            error={!!errors.brand}
-            helperText={errors.brand}
+            value={product.brandName}
+            error={!!errors.brandName}
+            helperText={errors.brandName}
           />
 
           <div style={{ textAlign: "center", border: "1px solid black" }}>

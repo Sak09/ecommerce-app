@@ -14,11 +14,9 @@ import {
 import Person2Icon from "@mui/icons-material/Person2";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { toast } from "react-toastify";
 import Grid2 from "@mui/material/Grid2";
 import AuthContext from "../context/index";
 import Logo from "./Logo"; 
-import summaryapi from "../common/index";
 
 const ROLE = {
   ADMIN: "ADMIN",

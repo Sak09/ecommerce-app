@@ -3,11 +3,14 @@ import { Button, Card, CardContent, CardMedia, Typography,CardActions,IconButton
 import ProductUploadDialog from "../components/ProductUploadDialog";
 import summaryapi from "../common";
 import EditIcon from '@mui/icons-material/Edit';
+import EditProductDialog from '../components/Editproduct';
 import { toast } from "react-toastify";
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 const Products = () => {
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState([]); 
+  const [editOpen, setEditOpen] = useState(false);
+const [selectedProduct, setSelectedProduct] = useState(null);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -16,6 +19,32 @@ const Products = () => {
   .find((row) => row.startsWith("access-token="))
   ?.split("=")[1];
   
+const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+  try {
+    const res = await fetch(`${summaryapi.deleteproduct.url}/${id}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      toast.success("Product deleted successfully");
+     setProducts((prev) => ({
+  ...prev,
+  data: prev.data.filter((product) => product._id !== id),
+}));
+
+    } else {
+      toast.error(data.message || "Delete failed");
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Something went wrong");
+  }
+};
+  
 
   
 
@@ -23,68 +52,28 @@ const Products = () => {
     try {
       const response = await fetch(summaryapi.allproducts.url);
   
-      const data = await response.json();
+       const data = await response.json();
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
   };
+  console.log("vd",products)
   
  
   useEffect(() => {
     fetchAllProducts();
   }, []);
-  const handleDelete = async (productId) => {
-  
-
-  if (!window.confirm("Are you sure you want to delete this product?")) return;
-
-  try {
-    const response = await fetch(`/api/products/${productId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: token,
-      },
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      toast.success("Product deleted successfully");
-      // fetchProducts(); 
-    } else {
-      toast.error(result.message || "Failed to delete product");
-    }
-  } catch (error) {
-    console.error("Delete error:", error);
-    toast.error("Something went wrong while deleting product");
-  }
+  const handleEditClick = (product) => {
+  setSelectedProduct(product);
+  setEditOpen(true);
 };
-const handleEdit = async (updatedProduct) => {
- 
-  try {
-    const response = await fetch(`/api/products/${updatedProduct._id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
-      body: JSON.stringify(updatedProduct),
-    });
 
-    const result = await response.json();
 
-    if (response.ok) {
-      toast.success("Product updated successfully");
-      // fetchProducts();
-    } else {
-      toast.error(result.message || "Failed to update product");
-    }
-  } catch (error) {
-    console.error("Error editing product:", error);
-    toast.error("Something went wrong while editing product");
-  }
+const handleUpdate = () => {
+  fetchAllProducts();
 };
+
 
 
   
@@ -123,13 +112,26 @@ const handleEdit = async (updatedProduct) => {
                 
               </CardContent>
                <CardActions>
-        <IconButton color="primary" onClick={() => handleEdit(item)}>
-          <EditIcon />
+        <IconButton>
+          <EditIcon onClick={() => handleEditClick(products)} />
         </IconButton>
-        <IconButton color="error" onClick={() => handleDelete(item._id)}>
-          <DeleteForeverIcon />
+        <IconButton>
+         <DeleteForeverIcon
+  style={{ cursor: "pointer", color: "red", marginLeft: "10px" }}
+  onClick={() => handleDelete(item._id)}
+/>
         </IconButton>
       </CardActions>
+      
+{selectedProduct && (
+  <EditProductDialog
+    open={editOpen}
+    onClose={() => setEditOpen(false)}
+    productData={selectedProduct}
+    onUpdate={handleUpdate}
+
+  />
+)}
             </Card>
           ))
         ) : (
