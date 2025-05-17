@@ -43,18 +43,16 @@ const AllUsers = () => {
     }
   };
 
-  // Fetch users on component mount
+
   useEffect(() => {
     fetchAllUsers();
   }, []);
 
-  // Open Dialog with selected user data
   const handleEditClick = (user) => {
     setSelectedUser(user);
     setOpen(true);
   };
 
-  // Close Dialog
   const handleClose = () => {
     setOpen(false);
     setSelectedUser(null);
@@ -64,11 +62,11 @@ const AllUsers = () => {
     <div style={{ padding: "20px" }}>
       <h2>All Users</h2>
 
-      {/* Loading & Error Handling */}
+  
       {loading && <p>Loading users...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* User Table */}
+  
       {!loading && !error && users.length > 0 ? (
         <table
           style={{

@@ -14,11 +14,9 @@ import {
 import Person2Icon from "@mui/icons-material/Person2";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { toast } from "react-toastify";
 import Grid2 from "@mui/material/Grid2";
 import AuthContext from "../context/index";
 import Logo from "./Logo"; 
-import summaryapi from "../common/index";
 
 const ROLE = {
   ADMIN: "ADMIN",
@@ -58,7 +56,7 @@ const Header = () => {
           <Logo />
         </Grid2>
 
-        {/* Search Box */}
+    
         <Grid2 item xs={6}>
           <TextField
             fullWidth
@@ -77,7 +75,7 @@ const Header = () => {
 
     
         <Grid2 item xs={3} style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-          {/* Profile Picture */}
+  
           <IconButton onClick={handleMenuClick}>
             {userDetail?.data?.profilePic ? (
               <img
@@ -96,7 +94,7 @@ const Header = () => {
           </IconButton>
 
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-            {userDetail?.data?.role === ROLE.ADMIN && (
+            {/* {userDetail?.data?.role === ROLE.ADMIN && ( */}
               <MenuItem
                 onClick={() => {
                   handleClose();
@@ -105,10 +103,10 @@ const Header = () => {
               >
                 Admin Panel
               </MenuItem>
-            )}
+            {/* )} */}
           </Menu>
 
-          {/* Cart Icon */}
+        
           <Badge
             color="error"
             variant="dot"
@@ -125,7 +123,7 @@ const Header = () => {
             <ShoppingCartIcon style={{ marginTop: "5px" }} />
           </Badge>
 
-          {/* Login/Logout Button */}
+    
           <div>
             {userDetail?.data ? (
               <Button onClick={handleLogout} variant="contained" color="error">

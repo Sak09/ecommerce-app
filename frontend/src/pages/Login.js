@@ -97,7 +97,7 @@ const Login = () => {
     >
      
 
-      <form onSubmit={handleSubmit}> {/* Ensure the form is using onSubmit to trigger handleSubmit */}
+      <form onSubmit={handleSubmit}>
         <Typography variant="h5" gutterBottom>
           Login
         </Typography>

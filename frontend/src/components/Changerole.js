@@ -5,12 +5,12 @@ import summaryapi from "../common";
 const EditUserDialog = ({ open, handleClose, user, fetchAllUsers }) => {
   const [updatedUser, setUpdatedUser] = useState(user);
 
-  // Handle input change
+
   const handleChange = (e) => {
     setUpdatedUser({ ...updatedUser, [e.target.name]: e.target.value });
   };
 
-  // Handle user update
+
   const handleUpdate = async () => {
     try {
       const token = document.cookie
@@ -31,8 +31,8 @@ const EditUserDialog = ({ open, handleClose, user, fetchAllUsers }) => {
       const data = await response.json();
       if (data.success) {
         alert("User updated successfully!");
-        fetchAllUsers(); // Refresh user list
-        handleClose(); // Close dialog
+        fetchAllUsers();
+        handleClose(); 
       } else {
         alert("Failed to update user!");
       }

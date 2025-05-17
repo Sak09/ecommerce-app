@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.success) {
-        setUserDetail(null); // 🟢 Clear user state immediately
+        setUserDetail(null); 
       }
     } catch (error) {
       console.error("Logout error:", error);

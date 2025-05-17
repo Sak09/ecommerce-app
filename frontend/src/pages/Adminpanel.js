@@ -3,31 +3,30 @@ import { Link, Outlet } from "react-router-dom";
 import context from "../context";
 
 const AdminPanel = () => {
-  const { fetchUserDetails } = useContext(context); // Fetch function from context
-  const [userData, setUserData] = useState(null); // State to store user data
-  const [allUsers, setAllUsers] = useState([]); // State to store all users
+  const { fetchUserDetails } = useContext(context); 
+  const [userData, setUserData] = useState(null); 
+  const [allUsers, setAllUsers] = useState([]); 
 
-  // Function to fetch user details
+
   const getUserData = async () => {
     try {
       const user = await fetchUserDetails();
       if (user && user.data) {
-        setUserData(user.data); // Save current user data
-        setAllUsers(user.data.users || []); // Assuming user.data.users contains the list of users
+        setUserData(user.data); 
+        setAllUsers(user.data.users || []); 
       }
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
   };
 
-  // Fetch user data on component mount
+  
   useEffect(() => {
     getUserData();
   }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
-      {/* Left Column: Profile Picture & User Details */}
       <div
         style={{
           width: "300px",
@@ -39,7 +38,6 @@ const AdminPanel = () => {
       >
         {userData ? (
           <>
-            {/* Profile Picture */}
             <div style={{ textAlign: "center" }}>
               <img
                 src={`http://localhost:8000${userData.profilePic}`}
@@ -54,7 +52,6 @@ const AdminPanel = () => {
               />
             </div>
 
-            {/* User Details */}
             <div>
               <h3 style={{ marginBottom: "10px", textAlign: "center" }}>
                 {userData.name || "No Name"}
@@ -63,7 +60,7 @@ const AdminPanel = () => {
                 <strong>Email:</strong> {userData.email || "No Email"}
               </p>
 
-              {/* Navbar */}
+        
               <nav
                 style={{
                   marginTop: "20px",
@@ -120,7 +117,7 @@ const AdminPanel = () => {
         )}
       </div>
 
-      {/* Right Column: Welcome Message */}
+  
       <div
         style={{
           flex: 1,
