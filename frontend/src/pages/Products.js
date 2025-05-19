@@ -11,12 +11,9 @@ import ViewProductDialog from '../components/Veiwdialog'
 const Products = () => {
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState([]); 
-<<<<<<< HEAD
   const [viewOpen, setViewOpen] = useState(false);
 const [viewProduct, setViewProduct] = useState(null);
 
-=======
->>>>>>> 390cbafcd99646afa79141ea95c19ee35db9a4c7
   const [editOpen, setEditOpen] = useState(false);
 const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -52,14 +49,11 @@ const handleDelete = async (id) => {
     toast.error("Something went wrong");
   }
 };
-<<<<<<< HEAD
 const handleView = (product) => {
   setViewProduct(product);
   setViewOpen(true);
 };
 
-=======
->>>>>>> 390cbafcd99646afa79141ea95c19ee35db9a4c7
   
 
   
@@ -136,7 +130,6 @@ const handleUpdate = () => {
   style={{ cursor: "pointer", color: "red", marginLeft: "10px" }}
   onClick={() => handleDelete(item._id)}
 />
-<<<<<<< HEAD
         </IconButton>
         <IconButton onClick={() => handleView(item)}>
          <VisibilityIcon/>
@@ -148,10 +141,6 @@ const handleUpdate = () => {
   product={viewProduct}
 />
 
-=======
-        </IconButton>
-      </CardActions>
->>>>>>> 390cbafcd99646afa79141ea95c19ee35db9a4c7
       
 {selectedProduct && (
   <EditProductDialog
