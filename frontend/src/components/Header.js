@@ -94,7 +94,7 @@ const Header = () => {
           </IconButton>
 
           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-            {/* {userDetail?.data?.role === ROLE.ADMIN && ( */}
+            {userDetail?.data?.role === ROLE.ADMIN && ( 
               <MenuItem
                 onClick={() => {
                   handleClose();
@@ -103,7 +103,7 @@ const Header = () => {
               >
                 Admin Panel
               </MenuItem>
-            {/* )} */}
+           )} 
           </Menu>
 
         

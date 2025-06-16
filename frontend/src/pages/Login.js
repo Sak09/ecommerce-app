@@ -149,7 +149,7 @@ const Login = () => {
                 transition: 'all 0.3s ease',
                 transform: isButtonEnlarged ? 'scale(1.2)' : 'scale(1)',
               }}
-              type="submit" // Use type="submit" to trigger form submission
+              type="submit" 
             >
               Login
             </Button>
