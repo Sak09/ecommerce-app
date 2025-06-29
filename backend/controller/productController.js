@@ -112,6 +112,33 @@ const updateProduct = async (req, res) => {
     });
   }
 };
+const getCategoryProduct = async (req, res) => {
+  try {
+    const productCategories = await productModel.distinct("category");
+
+    const productByCategory = [];
+
+    for (const category of productCategories) {
+      const product = await productModel.findOne({ category });
+        if(product) {
+      productByCategory.push(product);
+    }
+    }
+
+    res.json({
+      message: "Products by category",
+      data: productByCategory, 
+      success: true,
+      error: false,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message || "Server error",
+      error: true,
+      success: false,
+    });
+  }
+};
 
 
-module.exports = {addproduct, getAllproduct, deleteProduct, updateProduct};
+module.exports = {addproduct, getAllproduct, deleteProduct, updateProduct,getCategoryProduct};
