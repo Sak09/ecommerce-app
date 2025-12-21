@@ -10,6 +10,7 @@ import {
   Box,
   Divider,
 } from "@mui/material";
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import summaryapi from "../common";
 
 const CategoryList = () => {
@@ -74,6 +75,8 @@ const CategoryList = () => {
                     <Typography variant="subtitle1" sx={{ mt: 1, fontWeight: 500 }}>
                       Price: ₹{item.price}
                     </Typography>
+                    <ShoppingCartIcon/>
+                    
                   </CardContent>
                 </Grid2>
               </Grid2>

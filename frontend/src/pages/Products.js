@@ -54,9 +54,6 @@ const handleView = (product) => {
   setViewOpen(true);
 };
 
-  
-
-  
 
   const fetchAllProducts = async () => {
     try {
@@ -84,10 +81,6 @@ const handleUpdate = () => {
   fetchAllProducts();
 };
 
-
-
-  
-  
 
   return (
     <div style={{ padding: "20px" }}>
