@@ -47,6 +47,10 @@ const summaryapi = {
     url : `${baseurl}/api/deleteproduct`,
     method : "delete"
   },
+  categoryproduct : {
+    url : `${baseurl}/api/all-category`,
+    method : "get"
+  }
 };
 
 export default summaryapi;

@@ -1,10 +1,10 @@
 import React from 'react'
-// import Login from './Login'
+import CategoryList from '../components/CategoryList'
 
 const Home = () => {
   return (
     <div>
-      home
+      <CategoryList/>
     </div>
   )
 }
