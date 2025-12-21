@@ -1,14 +1,13 @@
-import { useContext, useEffect } from "react";
 import "./App.css";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import { Outlet } from "react-router-dom";
-import summaryapi from "./common";
+
 import Context from "./context/index";
 // import Cookies from "js-cookie";
 
 function App() {
-  const { fetchUserDetails } = useContext(Context);
+  // const { fetchUserDetails } = useContext(Context);
   // const fetchUserDetails = async () => {
   //   try {
   //     // const token = Cookies.get("access-token");
