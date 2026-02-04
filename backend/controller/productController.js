@@ -45,7 +45,7 @@ async function addproduct(req, res) {
 
 async function getAllproduct(req, res) {
   try {
-    const product = await productModel.find();
+    const product = await productModel.find().sort({ createdAt: -1});
     res.status(200).json({
       success: true,
       message: "All products fetched successfully",
