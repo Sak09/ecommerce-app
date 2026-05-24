@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from '../App'
 import Home from '../pages/Home.js';
 import Login from '../pages/Login.js';
@@ -15,13 +15,14 @@ const router = createBrowserRouter([
         children : [
             {
                 path : "",
-                element : <Home/>
+                element : <Navigate to="/sign-up" replace />
 
             },
             {
                 path :"login",
                 element : <Login/>
             },
+
             {
                 path :"sign-up",
                 element : <Signup/>

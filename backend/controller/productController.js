@@ -1,3 +1,4 @@
+// const { redisClient } = require("../config/redis");
 const uploadproductPermission = require("../middleware/permission");
 const productModel = require("../models/product");
 
@@ -45,7 +46,17 @@ async function addproduct(req, res) {
 
 async function getAllproduct(req, res) {
   try {
+    const cachekey = "products:all";
+    const cached = await redisClient.get(cachekey);
+      if (cached) {
+      return res.status(200).json({
+        success: true,
+        message: "Products fetched from cache",
+        data: JSON.parse(cached),
+      });
+    }
     const product = await productModel.find().sort({ createdAt: -1});
+    await redisClient.set(cachekey, JSON.stringify(product), "EX", 300);
     res.status(200).json({
       success: true,
       message: "All products fetched successfully",

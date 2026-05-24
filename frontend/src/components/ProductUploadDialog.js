@@ -132,9 +132,20 @@ const ProductUploadDialog = ({
   
   return (
     <>
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle>Upload Product</DialogTitle>
-        <DialogContent>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        disableScrollLock
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: { borderRadius: 3, overflow: 'hidden', backgroundColor: '#f8fbff' },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, textAlign: 'center' }}>
+          Upload Product
+        </DialogTitle>
+        <DialogContent sx={{ display: 'grid', gap: 2, pt: 1 }}>
           <TextField
             label="Product Name"
             name="name"
@@ -175,22 +186,38 @@ const ProductUploadDialog = ({
             helperText={errors.brandName}
           />
 
-          <div style={{ textAlign: "center", border: "1px solid black" }}>
-            <IconButton color="primary" component="label">
+          <div
+            style={{
+              textAlign: 'center',
+              border: '1px solid rgba(25, 118, 210, 0.2)',
+              borderRadius: '14px',
+              padding: '18px',
+              background: '#fff',
+            }}
+          >
+            <IconButton
+              color="primary"
+              component="label"
+              style={{
+                backgroundColor: '#e8f0fe',
+                borderRadius: '14px',
+                padding: '18px',
+              }}
+            >
               <CloudUploadIcon fontSize="large" />
               <input type="file" hidden onChange={handleImageUpload} />
             </IconButton>
             {errors.image && (
-              <p style={{ color: "red", fontSize: "12px" }}>{errors.image}</p>
+              <p style={{ color: 'red', fontSize: '12px' }}>{errors.image}</p>
             )}
 
             {product.image.length > 0 && (
               <div
                 style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  marginTop: "10px",
-                  gap: "10px",
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  marginTop: '10px',
+                  gap: '10px',
                 }}
               >
                 {product.image.map((imgUrl, index) => (

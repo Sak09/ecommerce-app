@@ -1,138 +1,82 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import context from "../context";
+import { Box, Grid2, Paper, Avatar, Typography, Button, Stack } from "@mui/material";
 
 const AdminPanel = () => {
-  const { fetchUserDetails } = useContext(context); 
-  const [userData, setUserData] = useState(null); 
-  const [allUsers, setAllUsers] = useState([]); 
-
+  const { fetchUserDetails } = useContext(context);
+  const [userData, setUserData] = useState(null);
 
   const getUserData = async () => {
     try {
       const user = await fetchUserDetails();
       if (user && user.data) {
-        setUserData(user.data); 
-        setAllUsers(user.data.users || []); 
+        setUserData(user.data);
       }
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
   };
 
-  
   useEffect(() => {
     getUserData();
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
-      <div
-        style={{
-          width: "300px",
-          border: "1px solid #ddd",
-          borderRadius: "8px",
-          padding: "20px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        {userData ? (
-          <>
-            <div style={{ textAlign: "center" }}>
-              <img
-                src={`http://localhost:8000${userData.profilePic}`}
-                alt="Profile"
-                style={{
-                  width: "150px",
-                  height: "150px",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  marginBottom: "20px",
-                }}
-              />
-            </div>
+    <Box sx={{ flexGrow: 1, py: 3 }}>
+      <Grid2 container spacing={3}>
+        <Grid2 item xs={12} md={4}>
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
+            {userData ? (
+              <Box>
+                <Box display="flex" justifyContent="center" mb={3}>
+                  <Avatar
+                    src={`http://localhost:8000${userData.profilePic}`}
+                    alt="Profile"
+                    sx={{ width: 140, height: 140 }}
+                  />
+                </Box>
+                <Typography variant="h5" align="center" gutterBottom>
+                  {userData.name || "Admin"}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" align="center" mb={2}>
+                  {userData.email || "No email available"}
+                </Typography>
 
-            <div>
-              <h3 style={{ marginBottom: "10px", textAlign: "center" }}>
-                {userData.name || "No Name"}
-              </h3>
-              <p style={{ margin: "10px 0" }}>
-                <strong>Email:</strong> {userData.email || "No Email"}
-              </p>
+                <Stack spacing={2} sx={{ mt: 2 }}>
+                  <Button
+                    component={Link}
+                    to="all-users"
+                    variant="outlined"
+                    fullWidth
+                    sx={{ textTransform: 'none' }}
+                  >
+                    View All Users
+                  </Button>
+                  <Button
+                    component={Link}
+                    to="all-products"
+                    variant="contained"
+                    fullWidth
+                    sx={{ textTransform: 'none' }}
+                  >
+                    View All Products
+                  </Button>
+                </Stack>
+              </Box>
+            ) : (
+              <Typography align="center">Loading user data...</Typography>
+            )}
+          </Paper>
+        </Grid2>
 
-        
-              <nav
-                style={{
-                  marginTop: "20px",
-                  backgroundColor: "#f8f9fa",
-                  borderRadius: "8px",
-                  padding: "10px",
-                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                }}
-              >
-                <ul
-                  style={{
-                    display: "flex",
-                    listStyle: "none",
-                    margin: 0,
-                    padding: 0,
-                    justifyContent: "space-around",
-                    alignItems: "center",
-                  }}
-                >
-                  <li>
-                    <Link
-                      to={"all-users"}
-                      style={{
-                        textDecoration: "none",
-                        color: "#007bff",
-                        fontWeight: "bold",
-                        padding: "8px 16px",
-                        borderRadius: "5px",
-                      }}
-                    >
-                      All Users
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to={"all-products"}
-                      style={{
-                        textDecoration: "none",
-                        color: "#007bff",
-                        fontWeight: "bold",
-                        padding: "8px 16px",
-                        borderRadius: "5px",
-                      }}
-                    >
-                      All Products
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-          </>
-        ) : (
-          <p>Loading user data...</p>
-        )}
-      </div>
-
-  
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "24px",
-          fontWeight: "bold",
-        }}
-      >
-        <main>
-          <Outlet />
-        </main>
-      </div>
-    </div>
+        <Grid2 item xs={12} md={8}>
+          <Paper elevation={0} sx={{ p: 2, minHeight: 360, borderRadius: 3, bgcolor: 'background.default' }}>
+            <Outlet />
+          </Paper>
+        </Grid2>
+      </Grid2>
+    </Box>
   );
 };
 

@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Button, Card, CardContent, CardMedia, Typography,CardActions,IconButton } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  CardActions,
+  IconButton,
+  Box,
+  Grid,
+  Container,
+} from "@mui/material";
 import ProductUploadDialog from "../components/ProductUploadDialog";
 import summaryapi from "../common";
 import EditIcon from '@mui/icons-material/Edit';
@@ -7,7 +18,7 @@ import EditProductDialog from '../components/Editproduct';
 import { toast } from "react-toastify";
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import ViewProductDialog from '../components/Veiwdialog'
+import ViewProductDialog from '../components/Veiwdialog';
 const Products = () => {
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState([]); 
@@ -83,7 +94,7 @@ const handleUpdate = () => {
 
 
   return (
-    <div style={{ padding: "20px" }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
       <Typography variant="h4" gutterBottom>
         All Products
       </Typography>
@@ -91,68 +102,61 @@ const handleUpdate = () => {
         Upload Product
       </Button>
 
-      <ProductUploadDialog
-        open={open}
-        onClose={handleClose}
-        
-      />
+      <ProductUploadDialog open={open} onClose={handleClose} />
 
-      <div style={{ display: "flex", flexWrap: "wrap", marginTop: "20px", gap: "20px" }}>
+      <Grid container spacing={3}>
         {products?.data?.length > 0 ? (
           products.data.map((item, index) => (
-            <Card key={index} style={{ width: "200px" }}>
-              <CardMedia
-                component="img"
-                height="140"
-                 image={item.productImage?.[0] || ""}
-                alt={item.name}
-              />
-              <CardContent>
-                <Typography variant="h6">{item.name}</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {item.category} - {item.brand}
-                </Typography>
-                
-              </CardContent>
-               <CardActions>
-        <IconButton>
-          <EditIcon onClick={() => handleEditClick(products)} />
-        </IconButton>
-        <IconButton>
-         <DeleteForeverIcon
-  style={{ cursor: "pointer", color: "red", marginLeft: "10px" }}
-  onClick={() => handleDelete(item._id)}
-/>
-        </IconButton>
-        <IconButton onClick={() => handleView(item)}>
-         <VisibilityIcon/>
-        </IconButton>
-      </CardActions>
-      <ViewProductDialog
-  open={viewOpen}
-  onClose={() => setViewOpen(false)}
-  product={viewProduct}
-/>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={item._id || index}>
+              <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <CardMedia
+                  component="img"
+                  height="180"
+                  image={item.productImage?.[0] || ""}
+                  alt={item.name}
+                  sx={{ objectFit: 'cover' }}
+                />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" gutterBottom noWrap>
+                    {item.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" noWrap>
+                    {item.category} - {item.brand}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }} noWrap>
+                    {item.description || 'No description available.'}
+                  </Typography>
+                </CardContent>
 
-      
-{selectedProduct && (
-  <EditProductDialog
-    open={editOpen}
-    onClose={() => setEditOpen(false)}
-    productData={selectedProduct}
-    onUpdate={handleUpdate}
-
-  />
-)}
-            </Card>
+                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                  <Box>
+                    <IconButton size="small" onClick={() => handleEditClick(item)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton size="small" color="error" onClick={() => handleDelete(item._id)}>
+                      <DeleteForeverIcon />
+                    </IconButton>
+                  </Box>
+                  <IconButton size="small" onClick={() => handleView(item)}>
+                    <VisibilityIcon />
+                  </IconButton>
+                </CardActions>
+              </Card>
+            </Grid>
           ))
         ) : (
-          <Typography variant="body1" style={{ marginTop: "20px" }}>
-            No products uploaded yet.
-          </Typography>
+          <Box sx={{ width: '100%', textAlign: 'center', mt: 4 }}>
+            <Typography variant="body1">No products uploaded yet.</Typography>
+          </Box>
         )}
-      </div>
-    </div>
+      </Grid>
+
+      <ViewProductDialog open={viewOpen} onClose={() => setViewOpen(false)} product={viewProduct} />
+
+      {selectedProduct && (
+        <EditProductDialog open={editOpen} onClose={() => setEditOpen(false)} productData={selectedProduct} onUpdate={handleUpdate} />
+      )}
+    </Container>
   );
 };
 

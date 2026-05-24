@@ -2,6 +2,19 @@ import React, { useEffect, useState } from "react";
 import summaryapi from "../common";
 import EditIcon from "@mui/icons-material/Edit";
 import EditUserDialog from "../components/Changerole";
+import {
+  Box,
+  Paper,
+  TableContainer,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Typography,
+  CircularProgress,
+  IconButton,
+} from "@mui/material";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -10,7 +23,6 @@ const AllUsers = () => {
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  
   const fetchAllUsers = async () => {
     try {
       const token = document.cookie
@@ -28,8 +40,6 @@ const AllUsers = () => {
       });
 
       const data = await response.json();
-      console.log("Fetched Users:", data.data);
-
       if (data?.data) {
         setUsers(data.data);
       } else {
@@ -42,7 +52,6 @@ const AllUsers = () => {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchAllUsers();
@@ -59,73 +68,83 @@ const AllUsers = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>All Users</h2>
+    <Box sx={{ py: 3, px: { xs: 1, sm: 2, md: 3 }, maxWidth: '1200px', mx: 'auto' }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
+        All Users
+      </Typography>
 
-  
-      {loading && <p>Loading users...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-  
-      {!loading && !error && users.length > 0 ? (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginTop: "20px",
-          }}
-        >
-          <thead>
-            <tr style={{ background: "#007bff", color: "white" }}>
-              <th style={tableHeaderStyle}>S. No</th>
-              <th style={tableHeaderStyle}>Name</th>
-              <th style={tableHeaderStyle}>Email</th>
-              <th style={tableHeaderStyle}>Role</th>
-              <th style={tableHeaderStyle}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user, index) => (
-              <tr key={user.id} style={{ borderBottom: "1px solid #ddd" }}>
-                <td style={tableCellStyle}>{index + 1}</td>
-                <td style={tableCellStyle}>{user.name}</td>
-                <td style={tableCellStyle}>{user.email}</td>
-                <td style={tableCellStyle}>{user.role}</td>
-                <td style={tableCellStyle}>
-                  <EditIcon
-                    style={{ cursor: "pointer", color: "#007bff" }}
-                    onClick={() => handleEditClick(user)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        !loading && <p>No users found.</p>
+      {loading && (
+        <Box display="flex" justifyContent="center" py={6}>
+          <CircularProgress />
+        </Box>
       )}
 
-      
+      {error && (
+        <Typography variant="body1" color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+
+      {!loading && !error && users.length > 0 ? (
+        <TableContainer
+          component={Paper}
+          sx={{
+            overflowX: 'auto',
+            boxShadow: 3,
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            p: 1,
+          }}
+        >
+          <Table sx={{ minWidth: 760 }}>
+            <TableHead>
+              <TableRow sx={{ bgcolor: 'primary.main' }}>
+                <TableCell sx={{ color: '#fff', fontWeight: 700 }}>S. No</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 700 }}>Name</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 700 }}>Email</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 700 }}>Role</TableCell>
+                <TableCell sx={{ color: '#fff', fontWeight: 700 }}>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {users.map((user, index) => (
+                <TableRow
+                  key={user.id || index}
+                  hover
+                  sx={{ '&:hover': { bgcolor: 'action.hover' } }}
+                >
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                  <TableCell>
+                    <IconButton color="primary" onClick={() => handleEditClick(user)}>
+                      <EditIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : (
+        !loading && (
+          <Typography variant="body1" sx={{ mt: 3 }}>
+            No users found.
+          </Typography>
+        )
+      )}
+
       {selectedUser && (
         <EditUserDialog
           open={open}
           handleClose={handleClose}
           user={selectedUser}
-          fetchAllUsers={fetchAllUsers} 
+          fetchAllUsers={fetchAllUsers}
         />
       )}
-    </div>
+    </Box>
   );
-};
-const tableHeaderStyle = {
-  padding: "10px",
-  textAlign: "left",
-  borderBottom: "2px solid #ddd",
-};
-
-const tableCellStyle = {
-  padding: "10px",
-  borderBottom: "1px solid #ddd",
 };
 
 export default AllUsers;
