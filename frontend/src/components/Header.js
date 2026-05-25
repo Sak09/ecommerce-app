@@ -112,33 +112,35 @@ const Header = () => {
             flexWrap="wrap"
           >
             {/* Menu Anchor Container */}
-            <Box>
-              <IconButton
-                onClick={handleMenuClick}
-                sx={{ borderRadius: 2, bgcolor: "background.default", p: 0.5 }}
-                aria-controls={isMenuOpen ? "profile-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={isMenuOpen ? "true" : undefined}
-              >
-                <Avatar src={profilePicUrl} alt="Profile" sx={{ width: 40, height: 40 }}>
-                  <Person2Icon />
-                </Avatar>
-              </IconButton>
+            {userDetail?.data && (
+              <Box>
+                <IconButton
+                  onClick={handleMenuClick}
+                  sx={{ borderRadius: 2, bgcolor: "background.default", p: 0.5 }}
+                  aria-controls={isMenuOpen ? "profile-menu" : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={isMenuOpen ? "true" : undefined}
+                >
+                  <Avatar src={profilePicUrl} alt="Profile" sx={{ width: 40, height: 40 }}>
+                    <Person2Icon />
+                  </Avatar>
+                </IconButton>
 
-              <Menu
-                id="profile-menu"
-                anchorEl={anchorEl}
-                open={isMenuOpen}
-                onClose={handleClose}
-                disableScrollLock // FIX: Prevents getScrollbarSize layout calculation crash
-              >
-                {userDetail?.data?.role === ROLE.ADMIN && (
-                  <MenuItem onClick={handleAdminNavigate}>
-                    Admin Panel
-                  </MenuItem>
-                )}
-              </Menu>
-            </Box>
+                <Menu
+                  id="profile-menu"
+                  anchorEl={anchorEl}
+                  open={isMenuOpen}
+                  onClose={handleClose}
+                  disableScrollLock // FIX: Prevents getScrollbarSize layout calculation crash
+                >
+                  {userDetail?.data?.role === ROLE.ADMIN && (
+                    <MenuItem onClick={handleAdminNavigate}>
+                      Admin Panel
+                    </MenuItem>
+                  )}
+                </Menu>
+              </Box>
+            )}
 
             {/* Cart Badge */}
             <Badge
