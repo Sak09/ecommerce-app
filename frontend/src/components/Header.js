@@ -138,24 +138,39 @@ const Header = () => {
                       Admin Panel
                     </MenuItem>
                   )}
+                  {userDetail?.data?.role === 'general' && (
+                    <MenuItem component={Link} to="/shop" onClick={handleClose}>
+                      Shop
+                    </MenuItem>
+                  )}
+                  <MenuItem onClick={handleLogout}>
+                    Logout
+                  </MenuItem>
                 </Menu>
               </Box>
             )}
 
             {/* Cart Badge */}
-            <Badge
-              color="error"
-              variant="dot"
-              sx={{
-                "& .MuiBadge-dot": {
-                  minWidth: 10,
-                  height: 10,
-                  borderRadius: "50%",
-                },
-              }}
+            <IconButton
+              component={Link}
+              to="/cart"
+              color="inherit"
+              sx={{ p: 1 }}
             >
-              <ShoppingCartIcon fontSize="large" />
-            </Badge>
+              <Badge
+                color="error"
+                variant="dot"
+                sx={{
+                  "& .MuiBadge-dot": {
+                    minWidth: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                  },
+                }}
+              >
+                <ShoppingCartIcon fontSize="large" />
+              </Badge>
+            </IconButton>
 
             {/* Auth Buttons */}
             {userDetail?.data ? (

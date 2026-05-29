@@ -55,15 +55,21 @@ const Login = () => {
       });
 
       const dataApi = await dataResponse.json();
-      Cookies.set('access-token', dataApi.data.token);
-
-      if (dataApi.success) {
+      
+      if (dataApi.success && dataApi.data?.token) {
+        Cookies.set('access-token', dataApi.data.token);
         setShowsuccessalert(true);
-        if (fetchUserDetails) await fetchUserDetails();
+        
+        // Fetch user details to update context
+        if (fetchUserDetails) {
+          await fetchUserDetails();
+        }
+        
+        // Give context time to update
         setTimeout(() => {
-          navigate('/');
+          navigate('/home');
           setShowsuccessalert(false);
-        }, 1500);
+        }, 1000);
       } else {
         console.error('Login failed:', dataApi.message);
       }

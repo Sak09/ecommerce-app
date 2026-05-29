@@ -43,7 +43,7 @@ const EditUserDialog = ({ open, handleClose, user, fetchAllUsers }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={handleClose} disableScrollLock>
       <DialogTitle>Edit User</DialogTitle>
       <DialogContent>
         <TextField

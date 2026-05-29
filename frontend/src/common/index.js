@@ -50,6 +50,18 @@ const summaryapi = {
   categoryproduct : {
     url : `${baseurl}/api/all-category`,
     method : "get"
+  },
+  addToCart : {
+    url : `${baseurl}/api/cart/add`,
+    method : "post"
+  },
+  getCart : {
+    url : `${baseurl}/api/cart`,
+    method : "get"
+  },
+  removeFromCart : {
+    url : `${baseurl}/api/cart/remove`,
+    method : "delete"
   }
 };
 

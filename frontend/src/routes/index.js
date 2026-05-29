@@ -7,6 +7,8 @@ import ForgotPassword from '../pages/ForgotPassword.js';
 import Adminpanel from '../pages/Adminpanel.js';
 import Allusers from '../pages/Allusers.js';
 import Products from '../pages/Products.js';
+import Shop from '../pages/Shop.js';
+import Cart from '../pages/Cart.js';
 
 const router = createBrowserRouter([
     {
@@ -15,8 +17,12 @@ const router = createBrowserRouter([
         children : [
             {
                 path : "",
-                element : <Navigate to="/sign-up" replace />
+                element : <Navigate to="/home" replace />
 
+            },
+            {
+                path :"home",
+                element : <Home/>
             },
             {
                 path :"login",
@@ -30,6 +36,14 @@ const router = createBrowserRouter([
             {
                 path :"forgot-password",
                 element : <ForgotPassword/>
+            },
+            {
+                path : "shop",
+                element : <Shop/>
+            },
+            {
+                path : "cart",
+                element : <Cart/>
             },
             {
                 path : 'admin-panel',
