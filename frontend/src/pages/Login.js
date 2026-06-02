@@ -1,38 +1,38 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Paper,
   Button,
-  Grid2,
   TextField,
   IconButton,
   Typography,
   Alert,
   Box,
   InputAdornment,
+  CircularProgress,
+  Divider,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import LoginIcon from '@mui/icons-material/Login';
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
 import { Link, useNavigate } from 'react-router-dom';
-import summaryapi from '../common/index';
-import CheckIcon from '@mui/icons-material/Check';
-import context from '../context';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../redux/userSlice';
 import Cookies from 'js-cookie';
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.user);
   const [showPassword, setShowPassword] = useState(false);
-  const [isButtonEnlarged, setIsButtonEnlarged] = useState(false);
-  const [showSuccessalert, setShowsuccessalert] = useState(false);
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
   const [data, setData] = useState({
     email: '',
     password: '',
   });
-  const navigate = useNavigate();
-  const { fetchUserDetails } = useContext(context);
-
-  const handleLoginClick = () => {
-    setIsButtonEnlarged(true);
-    setTimeout(() => setIsButtonEnlarged(false), 500);
-  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,36 +45,19 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const dataResponse = await fetch(summaryapi.login.url, {
-        method: summaryapi.login.method,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      const result = await dispatch(loginUser(data)).unwrap();
 
-      const dataApi = await dataResponse.json();
-      
-      if (dataApi.success && dataApi.data?.token) {
-        Cookies.set('access-token', dataApi.data.token);
-        setShowsuccessalert(true);
-        
-        // Fetch user details to update context
-        if (fetchUserDetails) {
-          await fetchUserDetails();
-        }
-        
-        // Give context time to update
+      if (result?.data?.token) {
+        Cookies.set('access-token', result.data.token);
+        setShowSuccessAlert(true);
+
         setTimeout(() => {
           navigate('/home');
-          setShowsuccessalert(false);
-        }, 1000);
-      } else {
-        console.error('Login failed:', dataApi.message);
+          setShowSuccessAlert(false);
+        }, 1500);
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (err) {
+      console.error('Login failed:', err);
     }
   };
 
@@ -89,105 +72,444 @@ const Login = () => {
       alignItems="center"
       justifyContent="center"
       py={6}
-      sx={{ bgcolor: '#f4f7ff' }}
+      sx={{
+        background: 'linear-gradient(180deg, #f0f4ff 0%, #e8eef9 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'rgba(25, 118, 210, 0.08)',
+          top: '-100px',
+          right: '-100px',
+          zIndex: 0,
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          width: '300px',
+          height: '300px',
+          borderRadius: '50%',
+          background: 'rgba(245, 0, 87, 0.05)',
+          bottom: '-80px',
+          left: '-80px',
+          zIndex: 0,
+        },
+      }}
     >
-      <Box width="100%" maxWidth={460} px={{ xs: 2, sm: 3 }}>
-        {showSuccessalert && (
-          <Alert icon={<CheckIcon fontSize="inherit" />} severity="success" sx={{ mb: 2 }}>
-            Login successful!
-          </Alert>
-        )}
-
-        <Paper
-          elevation={4}
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: 1200,
+          px: { xs: 2, sm: 3 },
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        <Box
           sx={{
-            p: { xs: 3, sm: 4 },
-            borderRadius: 3,
-            boxShadow: '0 16px 40px rgba(16,24,40,0.08)',
-            bgcolor: '#ffffff',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1.1fr 1fr' },
+            gap: 4,
+            alignItems: 'center',
           }}
         >
-          <Typography variant="h5" component="h1" textAlign="center" gutterBottom>
-            Login
-          </Typography>
-          <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mb: 3 }}>
-            Access your account and manage orders quickly.
-          </Typography>
+          {/* Left Section - Branding */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              gap: 3,
+              p: { xs: 3, sm: 4 },
+              borderRadius: 4,
+              bgcolor: 'rgba(255,255,255,0.7)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 24px 64px rgba(15, 23, 42, 0.08)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              animation: 'slideInLeft 0.6s ease-out',
+              '@keyframes slideInLeft': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateX(-40px)',
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateX(0)',
+                },
+              },
+            }}
+          >
+            <Box>
+              <Typography
+                variant="h3"
+                component="h1"
+                sx={{
+                  fontWeight: 900,
+                  background: 'linear-gradient(135deg, #1976d2 0%, #f50057 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 2,
+                }}
+              >
+                Welcome Back
+              </Typography>
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ fontSize: '1.1rem', lineHeight: 1.6, maxWidth: 520 }}
+              >
+                Log in to your account and explore exclusive features, manage your orders, and access personalized recommendations.
+              </Typography>
+            </Box>
 
-          <Box component="form" onSubmit={handleSubmit}>
-            <Grid2 container spacing={2}>
-              <Grid2 item xs={12}>
+            <Divider sx={{ my: 1 }} />
+
+            <Box sx={{ display: 'grid', gap: 2 }}>
+              {[
+                { icon: '✓', text: 'Fast and secure authentication' },
+                { icon: '✓', text: 'Manage your orders effortlessly' },
+                { icon: '✓', text: 'Access exclusive deals and offers' },
+              ].map((item, idx) => (
+                <Typography
+                  key={idx}
+                  variant="body2"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s both`,
+                    '@keyframes slideInLeft': {
+                      from: {
+                        opacity: 0,
+                        transform: 'translateX(-20px)',
+                      },
+                      to: {
+                        opacity: 1,
+                        transform: 'translateX(0)',
+                      },
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #1976d2 0%, #f50057 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
+                  {item.text}
+                </Typography>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Right Section - Login Form */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 3, sm: 4 },
+              borderRadius: 4,
+              background: 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 24px 64px rgba(15, 23, 42, 0.12)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              animation: 'slideInRight 0.6s ease-out',
+              '@keyframes slideInRight': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateX(40px)',
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateX(0)',
+                },
+              },
+            }}
+          >
+            {/* Header */}
+            <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
+              <Box
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #1976d2 0%, #f50057 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 2,
+                  boxShadow: '0 8px 24px rgba(25, 118, 210, 0.3)',
+                  animation: 'bounce 2s ease-in-out infinite',
+                  '@keyframes bounce': {
+                    '0%, 100%': { transform: 'translateY(0)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                  },
+                }}
+              >
+                <LoginIcon sx={{ fontSize: 32, color: 'white' }} />
+              </Box>
+              <Typography
+                variant="h5"
+                component="h2"
+                sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}
+              >
+                Sign In
+              </Typography>
+              <Typography variant="body2" color="text.secondary" textAlign="center">
+                Enter your credentials to access your account
+              </Typography>
+            </Box>
+
+            {/* Alerts */}
+            {showSuccessAlert && (
+              <Alert
+                icon={<CheckCircleIcon fontSize="inherit" />}
+                severity="success"
+                sx={{
+                  mb: 2,
+                  animation: 'slideDown 0.4s ease-out',
+                  '@keyframes slideDown': {
+                    from: {
+                      opacity: 0,
+                      transform: 'translateY(-20px)',
+                    },
+                    to: {
+                      opacity: 1,
+                      transform: 'translateY(0)',
+                    },
+                  },
+                }}
+              >
+                Login successful! Redirecting...
+              </Alert>
+            )}
+            {error && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2,
+                  animation: 'slideDown 0.4s ease-out',
+                  '@keyframes slideDown': {
+                    from: {
+                      opacity: 0,
+                      transform: 'translateY(-20px)',
+                    },
+                    to: {
+                      opacity: 1,
+                      transform: 'translateY(0)',
+                    },
+                  },
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+
+            {/* Form */}
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: 2.5 }}>
+              {/* Email Field */}
+              <Box>
                 <TextField
                   fullWidth
-                  label="Email"
+                  label="Email Address"
                   name="email"
                   type="email"
-                  variant="outlined"
                   value={data.email}
                   onChange={handleInputChange}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
                   required
+                  disabled={loading}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon
+                          sx={{
+                            color: focusedField === 'email' ? '#1976d2' : '#999',
+                            transition: 'color 0.3s ease',
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.1)',
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: '0 8px 24px rgba(25, 118, 210, 0.2)',
+                      },
+                    },
+                  }}
                 />
-              </Grid2>
-              <Grid2 item xs={12}>
+              </Box>
+
+              {/* Password Field */}
+              <Box>
                 <TextField
                   fullWidth
                   label="Password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
-                  variant="outlined"
                   value={data.password}
                   onChange={handleInputChange}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
                   required
+                  disabled={loading}
+                  InputLabelProps={{ shrink: true }}
                   InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon
+                          sx={{
+                            color: focusedField === 'password' ? '#1976d2' : '#999',
+                            transition: 'color 0.3s ease',
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
                           onClick={togglePasswordVisibility}
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          disabled={loading}
+                          sx={{
+                            transition: 'transform 0.3s ease',
+                            '&:hover': {
+                              transform: 'scale(1.1)',
+                            },
+                          }}
                         >
                           {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                         </IconButton>
                       </InputAdornment>
                     ),
                   }}
-                />
-              </Grid2>
-              <Grid2 item xs={12}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  onClick={handleLoginClick}
                   sx={{
-                    mt: 1.5,
-                    py: 1.5,
-                    transition: 'transform 0.25s ease',
-                    transform: isButtonEnlarged ? 'scale(1.05)' : 'scale(1)',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.1)',
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: '0 8px 24px rgba(25, 118, 210, 0.2)',
+                      },
+                    },
                   }}
-                >
-                  Login
-                </Button>
-              </Grid2>
-              <Grid2 item xs={12}>
-                <Typography variant="body2" textAlign="center">
-                  <Link to="/forgot-password" style={{ color: '#1976d2' }}>
-                    Forgot password?
+                />
+              </Box>
+
+              {/* Login Button */}
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading}
+                sx={{
+                  py: 1.75,
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  mt: 1,
+                  '&:hover:not(:disabled)': {
+                    background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
+                    boxShadow: '0 12px 32px rgba(25, 118, 210, 0.4)',
+                    transform: 'translateY(-2px)',
+                  },
+                  '&:active:not(:disabled)': {
+                    transform: 'translateY(0)',
+                  },
+                  '&:disabled': {
+                    opacity: 0.7,
+                  },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} sx={{ color: 'white' }} />
+                ) : (
+                  'Sign In'
+                )}
+              </Button>
+
+              {/* Links */}
+              <Box sx={{ display: 'grid', gap: 1.5, mt: 1 }}>
+                <Typography variant="body2" align="center">
+                  <Link
+                    to="/forgot-password"
+                    style={{
+                      color: '#1976d2',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      transition: 'all 0.3s ease',
+                      borderBottom: '2px solid transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.borderBottomColor = '#1976d2';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.borderBottomColor = 'transparent';
+                    }}
+                  >
+                    Forgot your password?
                   </Link>
                 </Typography>
-                <Typography variant="body2" textAlign="center" mt={1}>
-                  Don&apos;t have an account?{' '}
-                  <Link to="/sign-up" style={{ color: '#1976d2' }}>
-                    Sign up
+
+                <Divider />
+
+                <Typography variant="body2" align="center" sx={{ color: 'text.secondary' }}>
+                  Don't have an account?{' '}
+                  <Link
+                    to="/sign-up"
+                    style={{
+                      color: '#f50057',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.textDecoration = 'underline';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.textDecoration = 'none';
+                    }}
+                  >
+                    Create Account
                   </Link>
                 </Typography>
-              </Grid2>
-            </Grid2>
-          </Box>
-        </Paper>
+              </Box>
+            </Box>
+          </Paper>
+        </Box>
       </Box>
     </Box>
   );
 };
 
 export default Login;
+

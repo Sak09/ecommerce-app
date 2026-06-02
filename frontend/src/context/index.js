@@ -1,6 +1,4 @@
-// import { createContext } from "react";
-// const context =  createContext(null);
-// export default context
+
 import { createContext, useState, useEffect, useCallback } from "react";
 import summaryapi from "../common";
 

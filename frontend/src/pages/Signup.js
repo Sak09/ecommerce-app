@@ -3,6 +3,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { Link, useNavigate } from 'react-router-dom';
 import summaryapi from '../common';
+import { useDispatch, useSelector } from 'react-redux';
+import { signupUser, uploadProfilePic } from '../redux/userSlice';
 import {
   TextField,
   Button,
@@ -12,11 +14,26 @@ import {
   Box,
   Avatar,
   Paper,
+  Alert,
+  CircularProgress,
+  Divider,
+  LinearProgress,
 } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const SignUp = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.user);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [focusedField, setFocusedField] = useState(null);
   const [data, setData] = useState({
     email: '',
     password: '',
@@ -24,7 +41,6 @@ const SignUp = () => {
     confirmPassword: '',
     profilePic: '',
   });
-  const navigate = useNavigate();
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -38,36 +54,33 @@ const SignUp = () => {
     const file = e.target.files[0];
 
     if (!file) {
-      alert('Please select a file to upload.');
+      setUploadError('Please select a file to upload.');
       return;
     }
 
-    const formdata = new FormData();
-    formdata.append('file', file);
-
     try {
-      const response = await fetch(summaryapi.upload.url, {
-        method: summaryapi.upload.method,
-        body: formdata,
-      });
+      setUploadProgress(30);
+      
+      const result = await dispatch(uploadProfilePic(file)).unwrap();
+      
+      setUploadProgress(70);
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          alert('Profile picture uploaded successfully.');
-          setData((prev) => ({
-            ...prev,
-            profilePic: result.fileUrl,
-          }));
-        } else {
-          alert(result.message || 'Failed to upload the profile picture.');
-        }
+      if (result.success) {
+        setUploadError('');
+        setData((prev) => ({
+          ...prev,
+          profilePic: result.fileUrl,
+        }));
+        setUploadProgress(100);
+        setTimeout(() => setUploadProgress(0), 1000);
       } else {
-        alert('Error uploading the profile picture.');
+        setUploadError(result.message || 'Failed to upload the profile picture.');
+        setUploadProgress(0);
       }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred while uploading the profile picture.');
+    } catch (err) {
+      console.error('Error:', err);
+      setUploadError(err || 'An error occurred while uploading the profile picture.');
+      setUploadProgress(0);
     }
   };
 
@@ -75,32 +88,33 @@ const SignUp = () => {
     e.preventDefault();
 
     if (!data.profilePic) {
-      alert('Please upload a profile picture before submitting.');
+      setUploadError('Please upload a profile picture before submitting.');
       return;
     }
 
-    if (data.password === data.confirmPassword) {
-      try {
-        const response = await fetch(summaryapi.signup.url, {
-          method: summaryapi.signup.method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
+    if (data.password !== data.confirmPassword) {
+      setUploadError('Passwords do not match. Please check and try again.');
+      return;
+    }
 
-        const result = await response.json();
-        if (result.success) {
-          alert(result.message);
-          navigate('/login');
-        } else {
-          alert(result.message);
-        }
-      } catch (error) {
-        alert('An error occurred during sign-up. Please try again.');
+    try {
+      const result = await dispatch(signupUser({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        profilePic: data.profilePic,
+      })).unwrap();
+
+      if (result.success) {
+        alert(result.message || 'Account created successfully!');
+        navigate('/login');
       }
-    } else {
-      alert('Passwords do not match. Please check and try again.');
+    } catch (err) {
+      console.error('Signup failed:', err);
     }
   };
+
+  const isFormValid = data.email && data.password && data.confirmPassword && data.name && data.profilePic;
 
   return (
     <Box
@@ -110,7 +124,31 @@ const SignUp = () => {
       justifyContent="center"
       py={6}
       sx={{
-        bgcolor: 'linear-gradient(180deg, #eef4ff 0%, #f9fbff 100%)',
+        background: 'linear-gradient(180deg, #f0f4ff 0%, #e8eef9 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'rgba(245, 0, 87, 0.08)',
+          top: '-100px',
+          right: '-100px',
+          zIndex: 0,
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          width: '300px',
+          height: '300px',
+          borderRadius: '50%',
+          background: 'rgba(25, 118, 210, 0.05)',
+          bottom: '-80px',
+          left: '-80px',
+          zIndex: 0,
+        },
       }}
     >
       <Box
@@ -118,6 +156,8 @@ const SignUp = () => {
           width: '100%',
           maxWidth: 1200,
           px: { xs: 2, sm: 3 },
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <Box
@@ -128,148 +168,537 @@ const SignUp = () => {
             alignItems: 'center',
           }}
         >
+          {/* Left Section - Branding */}
           <Box
             sx={{
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              gap: 2,
+              gap: 3,
               p: { xs: 3, sm: 4 },
               borderRadius: 4,
-              bgcolor: 'rgba(255,255,255,0.75)',
-              boxShadow: '0 24px 64px rgba(15, 23, 42, 0.08)',
+              bgcolor: 'rgba(255,255,255,0.7)',
               backdropFilter: 'blur(12px)',
+              boxShadow: '0 24px 64px rgba(15, 23, 42, 0.08)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              animation: 'slideInLeft 0.6s ease-out',
+              '@keyframes slideInLeft': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateX(-40px)',
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateX(0)',
+                },
+              },
             }}
           >
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 800 }}>
-              Join the community.
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 520 }}>
-              Create your account in seconds and start managing products, orders, and customers from a modern dashboard.
-            </Typography>
-            <Box sx={{ display: 'grid', gap: 1, mt: 2 }}>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                • Smooth onboarding experience
+            <Box>
+              <Typography
+                variant="h3"
+                component="h1"
+                sx={{
+                  fontWeight: 900,
+                  background: 'linear-gradient(135deg, #f50057 0%, #1976d2 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 2,
+                }}
+              >
+                Join Us Today
               </Typography>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                • Responsive and polished interface
+              <Typography
+                variant="body1"
+                color="text.secondary"
+                sx={{ fontSize: '1.1rem', lineHeight: 1.6, maxWidth: 520 }}
+              >
+                Create your account and become part of our thriving community. Unlock exclusive features and start your journey with us.
               </Typography>
-              <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                • Secure signup with profile upload support
-              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 1 }} />
+
+            <Box sx={{ display: 'grid', gap: 2 }}>
+              {[
+                { icon: '✓', text: 'Quick and easy account creation' },
+                { icon: '✓', text: 'Secure profile upload' },
+                { icon: '✓', text: 'Instant access to all features' },
+              ].map((item, idx) => (
+                <Typography
+                  key={idx}
+                  variant="body2"
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    animation: `slideInLeft 0.6s ease-out ${idx * 0.1}s both`,
+                    '@keyframes slideInLeft': {
+                      from: {
+                        opacity: 0,
+                        transform: 'translateX(-20px)',
+                      },
+                      to: {
+                        opacity: 1,
+                        transform: 'translateX(0)',
+                      },
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #f50057 0%, #1976d2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
+                  {item.text}
+                </Typography>
+              ))}
             </Box>
           </Box>
 
+          {/* Right Section - Signup Form */}
           <Paper
-            elevation={4}
+            elevation={0}
             sx={{
               p: { xs: 3, sm: 4 },
               borderRadius: 4,
-              boxShadow: '0 24px 64px rgba(15, 23, 42, 0.08)',
+              background: 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 24px 64px rgba(15, 23, 42, 0.12)',
+              border: '1px solid rgba(255,255,255,0.5)',
+              animation: 'slideInRight 0.6s ease-out',
+              '@keyframes slideInRight': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateX(40px)',
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateX(0)',
+                },
+              },
             }}
           >
+            {/* Header */}
             <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
-              <Avatar
-                src={data.profilePic ? `http://localhost:8000${data.profilePic}` : ''}
-                sx={{ width: 100, height: 100, mb: 2, bgcolor: 'primary.light' }}
-              />
-              <Typography variant="h5" component="h2" sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}>
-                Create your account
+              <Box
+                sx={{
+                  width: 70,
+                  height: 70,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #f50057 0%, #1976d2 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: 2,
+                  boxShadow: '0 8px 24px rgba(245, 0, 87, 0.3)',
+                  animation: 'bounce 2s ease-in-out infinite',
+                  '@keyframes bounce': {
+                    '0%, 100%': { transform: 'translateY(0)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                  },
+                }}
+              >
+                <PersonIcon sx={{ fontSize: 36, color: 'white' }} />
+              </Box>
+              <Typography
+                variant="h5"
+                component="h2"
+                sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}
+              >
+                Create Account
               </Typography>
               <Typography variant="body2" color="text.secondary" textAlign="center">
-                Upload a profile image and fill in your details to get started.
+                Fill in your details and upload a profile photo to get started
               </Typography>
             </Box>
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: 2 }}>
-              <Button
-                variant="outlined"
-                component="label"
-                sx={{ textTransform: 'none', py: 1.25, borderRadius: 3 }}
+            {/* Alerts */}
+            {uploadError && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2,
+                  animation: 'slideDown 0.4s ease-out',
+                  '@keyframes slideDown': {
+                    from: {
+                      opacity: 0,
+                      transform: 'translateY(-20px)',
+                    },
+                    to: {
+                      opacity: 1,
+                      transform: 'translateY(0)',
+                    },
+                  },
+                }}
               >
-                {data.profilePic ? 'Change Profile Photo' : 'Upload Profile Photo'}
-                <input type="file" hidden onChange={handleUploadPic} />
-              </Button>
+                {uploadError}
+              </Alert>
+            )}
+            {error && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2,
+                  animation: 'slideDown 0.4s ease-out',
+                  '@keyframes slideDown': {
+                    from: {
+                      opacity: 0,
+                      transform: 'translateY(-20px)',
+                    },
+                    to: {
+                      opacity: 1,
+                      transform: 'translateY(0)',
+                    },
+                  },
+                }}
+              >
+                {error}
+              </Alert>
+            )}
 
-              <TextField
-                label="Name"
-                name="name"
-                value={data.name}
-                onChange={handleOnChange}
-                fullWidth
-                required
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                label="Email"
-                name="email"
-                value={data.email}
-                onChange={handleOnChange}
-                type="email"
-                fullWidth
-                required
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                label="Password"
-                name="password"
-                value={data.password}
-                onChange={handleOnChange}
-                type={showPassword ? 'text' : 'password'}
-                fullWidth
-                required
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+            {/* Form */}
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'grid', gap: 2.5 }}>
+              {/* Profile Picture Upload */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 2,
+                  p: 2.5,
+                  borderRadius: 3,
+                  border: '2px dashed #e0e0e0',
+                  bgcolor: '#fafafa',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: '#1976d2',
+                    bgcolor: '#f0f4ff',
+                  },
                 }}
-              />
-              <TextField
-                label="Confirm Password"
-                name="confirmPassword"
-                value={data.confirmPassword}
-                onChange={handleOnChange}
-                type={showConfirmPassword ? 'text' : 'password'}
-                fullWidth
-                required
-                InputLabelProps={{ shrink: true }}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              >
+                <Avatar
+                  src={data.profilePic ? `http://localhost:8000${data.profilePic}` : ''}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: 'primary.light',
+                    boxShadow: data.profilePic ? '0 8px 20px rgba(25, 118, 210, 0.3)' : 'none',
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  {!data.profilePic && <PersonIcon sx={{ fontSize: 40 }} />}
+                </Avatar>
+                <Button
+                  variant="outlined"
+                  component="label"
+                  startIcon={<CloudUploadIcon />}
+                  disabled={loading}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #f50057 0%, #1976d2 100%)',
+                      color: 'white',
+                      borderColor: 'transparent',
+                    },
+                  }}
+                >
+                  {data.profilePic ? 'Change Photo' : 'Upload Photo'}
+                  <input type="file" hidden onChange={handleUploadPic} />
+                </Button>
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <Box sx={{ width: '100%', mt: 1 }}>
+                    <LinearProgress variant="determinate" value={uploadProgress} />
+                  </Box>
+                )}
+                {uploadProgress === 100 && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'success.main' }}>
+                    <CheckCircleIcon fontSize="small" />
+                    <Typography variant="body2">Upload successful!</Typography>
+                  </Box>
+                )}
+              </Box>
+
+              {/* Name Field */}
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  name="name"
+                  value={data.name}
+                  onChange={handleOnChange}
+                  onFocus={() => setFocusedField('name')}
+                  onBlur={() => setFocusedField(null)}
+                  required
+                  disabled={loading}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon
+                          sx={{
+                            color: focusedField === 'name' ? '#f50057' : '#999',
+                            transition: 'color 0.3s ease',
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(245, 0, 87, 0.1)',
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: '0 8px 24px rgba(245, 0, 87, 0.2)',
+                      },
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Email Field */}
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  name="email"
+                  type="email"
+                  value={data.email}
+                  onChange={handleOnChange}
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
+                  required
+                  disabled={loading}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon
+                          sx={{
+                            color: focusedField === 'email' ? '#f50057' : '#999',
+                            transition: 'color 0.3s ease',
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(245, 0, 87, 0.1)',
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: '0 8px 24px rgba(245, 0, 87, 0.2)',
+                      },
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Password Field */}
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={data.password}
+                  onChange={handleOnChange}
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
+                  required
+                  disabled={loading}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon
+                          sx={{
+                            color: focusedField === 'password' ? '#f50057' : '#999',
+                            transition: 'color 0.3s ease',
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          disabled={loading}
+                          sx={{
+                            transition: 'transform 0.3s ease',
+                            '&:hover': {
+                              transform: 'scale(1.1)',
+                            },
+                          }}
+                        >
+                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(245, 0, 87, 0.1)',
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: '0 8px 24px rgba(245, 0, 87, 0.2)',
+                      },
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Confirm Password Field */}
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Confirm Password"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={data.confirmPassword}
+                  onChange={handleOnChange}
+                  onFocus={() => setFocusedField('confirmPassword')}
+                  onBlur={() => setFocusedField(null)}
+                  required
+                  disabled={loading}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon
+                          sx={{
+                            color: focusedField === 'confirmPassword' ? '#f50057' : '#999',
+                            transition: 'color 0.3s ease',
+                          }}
+                        />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          disabled={loading}
+                          sx={{
+                            transition: 'transform 0.3s ease',
+                            '&:hover': {
+                              transform: 'scale(1.1)',
+                            },
+                          }}
+                        >
+                          {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(245, 0, 87, 0.1)',
+                      },
+                      '&.Mui-focused': {
+                        boxShadow: '0 8px 24px rgba(245, 0, 87, 0.2)',
+                      },
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Submit Button */}
               <Button
                 type="submit"
                 variant="contained"
-                color="primary"
                 fullWidth
-                sx={{ py: 1.5, borderRadius: 3, fontWeight: 700 }}
+                disabled={loading || !isFormValid}
+                sx={{
+                  py: 1.75,
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  background: isFormValid
+                    ? 'linear-gradient(135deg, #f50057 0%, #1976d2 100%)'
+                    : '#ccc',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  mt: 1.5,
+                  '&:hover:not(:disabled)': {
+                    background: 'linear-gradient(135deg, #d4003b 0%, #1565c0 100%)',
+                    boxShadow: '0 12px 32px rgba(245, 0, 87, 0.4)',
+                    transform: 'translateY(-2px)',
+                  },
+                  '&:active:not(:disabled)': {
+                    transform: 'translateY(0)',
+                  },
+                  '&:disabled': {
+                    opacity: 0.7,
+                    cursor: 'not-allowed',
+                  },
+                }}
               >
-                Create Account
+                {loading ? (
+                  <CircularProgress size={24} sx={{ color: 'white' }} />
+                ) : (
+                  'Create Account'
+                )}
               </Button>
-            </Box>
 
-            <Typography variant="body2" align="center" sx={{ mt: 3, color: 'text.secondary' }}>
-              Already have an account?{' '}
-              <Link to="/login" style={{ color: '#1976d2', fontWeight: 600 }}>
-                Login
-              </Link>
-            </Typography>
+              {/* Link */}
+              <Typography variant="body2" align="center" sx={{ color: 'text.secondary', mt: 1 }}>
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  style={{
+                    color: '#1976d2',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    transition: 'all 0.3s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.textDecoration = 'none';
+                  }}
+                >
+                  Login here
+                </Link>
+              </Typography>
+            </Box>
           </Paper>
         </Box>
       </Box>
     </Box>
   );
 };
-
 export default SignUp;
+
+ 
+

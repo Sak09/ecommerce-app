@@ -1,22 +1,18 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import AuthContext from '../context'
+import { useDispatch, useSelector } from 'react-redux'
 import { Box, CircularProgress } from '@mui/material'
+import { fetchUserDetails } from '../redux/userSlice'
 
 const Home = () => {
-  const { userDetail } = useContext(AuthContext);
-  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { userDetail, isAuthenticated, loading } = useSelector((state) => state.user);
 
   useEffect(() => {
-    // Give context a moment to update
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [userDetail]);
+    dispatch(fetchUserDetails());
+  }, [dispatch]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
         <CircularProgress />
@@ -25,11 +21,11 @@ const Home = () => {
   }
 
   // Redirect based on user role
-  if (userDetail?.data?.role === 'admin' || userDetail?.data?.role === 'ADMIN') {
+  if (userDetail?.role === 'admin' || userDetail?.role === 'ADMIN') {
     return <Navigate to="/admin-panel" replace />
   }
   
-  if (userDetail?.data?.role === 'general' || userDetail?.data?.role === 'GENERAL') {
+  if (userDetail?.role === 'general' || userDetail?.role === 'GENERAL') {
     return <Navigate to="/shop" replace />
   }
 

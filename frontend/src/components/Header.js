@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Paper,
   TextField,
@@ -17,7 +18,8 @@ import Grid2 from "@mui/material/Grid2";
 import Person2Icon from "@mui/icons-material/Person2";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import AuthContext from "../context/index";
+import { fetchUserDetails, logoutUser } from "../redux/userSlice";
+import { fetchCart } from "../redux/cartSlice";
 import Logo from "./Logo";
 
 const ROLE = {
@@ -26,15 +28,19 @@ const ROLE = {
 };
 
 const Header = () => {
-  const { fetchUserDetails, userDetail, logout } = useContext(AuthContext);
-  const [anchorEl, setAnchorEl] = useState(null);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { userDetail, isAuthenticated } = useSelector((state) => state.user);
+  const { cartCount } = useSelector((state) => state.cart);
+  const [anchorEl, setAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
 
   useEffect(() => {
-    fetchUserDetails();
-  }, []);
+    dispatch(fetchUserDetails());
+    if (isAuthenticated) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, isAuthenticated]);
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -46,7 +52,7 @@ const Header = () => {
 
   const handleLogout = () => {
     handleClose();
-    logout();
+    dispatch(logoutUser());
     navigate("/login");
   };
 
@@ -55,8 +61,8 @@ const Header = () => {
     navigate("/admin-panel");
   };
 
-  const profilePicUrl = userDetail?.data?.profilePic
-    ? `http://localhost:8000${userDetail.data.profilePic}`
+  const profilePicUrl = userDetail?.profilePic
+    ? `http://localhost:8000${userDetail.profilePic}`
     : null;
 
   return (
@@ -112,7 +118,7 @@ const Header = () => {
             flexWrap="wrap"
           >
             {/* Menu Anchor Container */}
-            {userDetail?.data && (
+            {isAuthenticated && userDetail && (
               <Box>
                 <IconButton
                   onClick={handleMenuClick}
@@ -131,14 +137,14 @@ const Header = () => {
                   anchorEl={anchorEl}
                   open={isMenuOpen}
                   onClose={handleClose}
-                  disableScrollLock // FIX: Prevents getScrollbarSize layout calculation crash
+                  disableScrollLock
                 >
-                  {userDetail?.data?.role === ROLE.ADMIN && (
+                  {userDetail?.role === ROLE.ADMIN && (
                     <MenuItem onClick={handleAdminNavigate}>
                       Admin Panel
                     </MenuItem>
                   )}
-                  {userDetail?.data?.role === 'general' && (
+                  {userDetail?.role === 'general' && (
                     <MenuItem component={Link} to="/shop" onClick={handleClose}>
                       Shop
                     </MenuItem>
@@ -158,12 +164,12 @@ const Header = () => {
               sx={{ p: 1 }}
             >
               <Badge
+                badgeContent={cartCount}
                 color="error"
-                variant="dot"
                 sx={{
-                  "& .MuiBadge-dot": {
-                    minWidth: 10,
-                    height: 10,
+                  "& .MuiBadge-badge": {
+                    minWidth: 20,
+                    height: 20,
                     borderRadius: "50%",
                   },
                 }}
@@ -173,7 +179,7 @@ const Header = () => {
             </IconButton>
 
             {/* Auth Buttons */}
-            {userDetail?.data ? (
+            {isAuthenticated && userDetail ? (
               <Button variant="contained" color="error" onClick={handleLogout} sx={{ whiteSpace: "nowrap" }}>
                 Logout
               </Button>

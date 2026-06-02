@@ -1,46 +1,40 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link, Outlet } from "react-router-dom";
-import context from "../context";
-import { Box, Grid2, Paper, Avatar, Typography, Button, Stack } from "@mui/material";
+import { useDispatch, useSelector } from 'react-redux';
+import { Box, Grid2, Paper, Avatar, Typography, Button, Stack, CircularProgress } from "@mui/material";
+import { fetchUserDetails } from "../redux/userSlice";
 
 const AdminPanel = () => {
-  const { fetchUserDetails } = useContext(context);
-  const [userData, setUserData] = useState(null);
-
-  const getUserData = async () => {
-    try {
-      const user = await fetchUserDetails();
-      if (user && user.data) {
-        setUserData(user.data);
-      }
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-    }
-  };
+  const dispatch = useDispatch();
+  const { userDetail, loading } = useSelector((state) => state.user);
 
   useEffect(() => {
-    getUserData();
-  }, []);
+    dispatch(fetchUserDetails());
+  }, [dispatch]);
 
   return (
     <Box sx={{ flexGrow: 1, py: 3 }}>
       <Grid2 container spacing={3}>
         <Grid2 item xs={12} md={4}>
           <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-            {userData ? (
+            {loading ? (
+              <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
+                <CircularProgress />
+              </Box>
+            ) : userDetail ? (
               <Box>
                 <Box display="flex" justifyContent="center" mb={3}>
                   <Avatar
-                    src={`http://localhost:8000${userData.profilePic}`}
+                    src={`http://localhost:8000${userDetail.profilePic}`}
                     alt="Profile"
                     sx={{ width: 140, height: 140 }}
                   />
                 </Box>
                 <Typography variant="h5" align="center" gutterBottom>
-                  {userData.name || "Admin"}
+                  {userDetail.name || "Admin"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" align="center" mb={2}>
-                  {userData.email || "No email available"}
+                  {userDetail.email || "No email available"}
                 </Typography>
 
                 <Stack spacing={2} sx={{ mt: 2 }}>
@@ -65,7 +59,7 @@ const AdminPanel = () => {
                 </Stack>
               </Box>
             ) : (
-              <Typography align="center">Loading user data...</Typography>
+              <Typography align="center">No user data available</Typography>
             )}
           </Paper>
         </Grid2>

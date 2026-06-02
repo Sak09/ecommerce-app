@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Button,
   Card,
@@ -12,92 +13,55 @@ import {
   Container,
   Snackbar,
   Alert,
+  CircularProgress,
 } from "@mui/material";
-import summaryapi from "../common";
-import AuthContext from "../context";
 import { toast } from "react-toastify";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useNavigate } from "react-router-dom";
+import { fetchAllProducts } from "../redux/productsSlice";
+import { addToCart } from "../redux/cartSlice";
 
 const Shop = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { userDetail } = useContext(AuthContext);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { products, loading } = useSelector((state) => state.products);
+  const { isAuthenticated } = useSelector((state) => state.user);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("access-token="))
-    ?.split("=")[1];
-
-  const fetchAllProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(summaryapi.allproducts.url);
-      const data = await response.json();
-      setProducts(data.data || []);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error("Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchAllProducts();
-  }, []);
+    dispatch(fetchAllProducts());
+  }, [dispatch]);
 
   const handleAddToCart = async (productId) => {
-    if (!token) {
+    if (!isAuthenticated) {
       toast.error("Please login first");
       navigate("/login");
       return;
     }
 
     try {
-      const res = await fetch(summaryapi.addToCart.url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-        credentials: "include",
-        body: JSON.stringify({ productId }),
+      const result = await dispatch(addToCart(productId)).unwrap();
+      setSnackbar({
+        open: true,
+        message: "Product added to cart!",
+        severity: "success",
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setSnackbar({
-          open: true,
-          message: "Product added to cart!",
-          severity: "success",
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          message: data.message || "Failed to add to cart",
-          severity: "error",
-        });
-      }
     } catch (error) {
       console.error("Error adding to cart:", error);
       setSnackbar({
         open: true,
-        message: "Something went wrong",
+        message: error || "Failed to add to cart",
         severity: "error",
       });
     }
   };
 
   const handleBuyNow = async (product) => {
-    if (!token) {
+    if (!isAuthenticated) {
       toast.error("Please login first");
       navigate("/login");
       return;
@@ -105,27 +69,22 @@ const Shop = () => {
 
     try {
       // Add to cart first
-      const res = await fetch(summaryapi.addToCart.url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-        credentials: "include",
-        body: JSON.stringify({ productId: product._id }),
-      });
-
-      if (res.ok) {
-        // Redirect to checkout/cart
-        navigate("/cart");
-      } else {
-        toast.error("Failed to process order");
-      }
+      await dispatch(addToCart(product._id)).unwrap();
+      // Redirect to checkout/cart
+      navigate("/cart");
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Something went wrong");
+      toast.error(error || "Something went wrong");
     }
   };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 5, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 5 }}>
@@ -138,11 +97,7 @@ const Shop = () => {
         </Typography>
       </Box>
 
-      {loading ? (
-        <Box sx={{ textAlign: "center", py: 5 }}>
-          <Typography>Loading products...</Typography>
-        </Box>
-      ) : products.length > 0 ? (
+      {products && products.length > 0 ? (
         <Grid container spacing={3}>
           {products.map((product) => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={product._id}>
@@ -258,3 +213,4 @@ const Shop = () => {
 };
 
 export default Shop;
+               

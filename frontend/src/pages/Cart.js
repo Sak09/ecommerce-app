@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Container,
   Typography,
@@ -20,82 +21,26 @@ import {
   CircularProgress,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import summaryapi from "../common";
-import AuthContext from "../context";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { fetchCart, removeFromCart } from "../redux/cartSlice";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { userDetail } = useContext(AuthContext);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const token = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("access-token="))
-    ?.split("=")[1];
-
-  const fetchCart = async () => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await fetch(summaryapi.getCart.url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-        credentials: "include",
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setCartItems(data.data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-      toast.error("Failed to load cart");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { cartItems, loading } = useSelector((state) => state.cart);
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   const handleRemoveFromCart = async (productId) => {
     try {
-      const res = await fetch(
-        `${summaryapi.removeFromCart.url}/${productId}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-          },
-          credentials: "include",
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Product removed from cart");
-        setCartItems((prev) =>
-          prev.filter((item) => item.productId._id !== productId)
-        );
-      } else {
-        toast.error(data.message || "Failed to remove product");
-      }
+      const result = await dispatch(removeFromCart(productId)).unwrap();
+      toast.success("Product removed from cart");
     } catch (error) {
       console.error("Error removing from cart:", error);
-      toast.error("Something went wrong");
+      toast.error(error || "Failed to remove product");
     }
   };
 

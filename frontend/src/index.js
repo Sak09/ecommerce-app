@@ -5,15 +5,18 @@ import './index.css';
 import router from './routes';
 import reportWebVitals from './reportWebVitals';
 import { RouterProvider } from 'react-router-dom';
-import { AuthProvider } from "./context/index"; 
+import { AuthProvider } from "./context/index";
+import { Provider } from 'react-redux';
+import store from './redux/store';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-    <RouterProvider router={router}/>
-    </AuthProvider>
-   
+    <Provider store={store}>
+      <AuthProvider>
+        <RouterProvider router={router}/>
+      </AuthProvider>
+    </Provider>
   </React.StrictMode>
 );
 

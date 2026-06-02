@@ -11,6 +11,14 @@ const summaryapi = {
     url: `${baseurl}/api/login`,
     method: "post"
   },
+  forgotPassword : {
+    url: `${baseurl}/api/forgot-password`,
+    method: "post"
+  },
+  resetPassword : {
+    url: `${baseurl}/api/reset-password`,
+    method: "post"
+  },
   current_user : {
     url :`${baseurl}/api/user-details`,
     method : "get"

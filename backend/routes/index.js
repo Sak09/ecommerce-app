@@ -12,10 +12,13 @@ const logoutController = require('../controller/logoutController');
 const Allusers = require('../controller/allUsers');
 const updateUser = require('../controller/updateUser');
 const { addproduct, getAllproduct, deleteProduct, updateProduct, getCategoryProduct } = require('../controller/productController');
+const { forgotPasswordController, resetPasswordController } = require('../controller/forgotPasswordController');
 
 
 router.post("/signup", signUpController);
 router.post("/login", loginController);  
+router.post("/forgot-password", forgotPasswordController);
+router.post("/reset-password", resetPasswordController);
 router.get('/user-details',auth,userDetailController)
 router.get('/logout', logoutController);
 router.get('/all-users',auth, Allusers)

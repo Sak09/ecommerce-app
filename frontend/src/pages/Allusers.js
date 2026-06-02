@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import summaryapi from "../common";
+import { useDispatch, useSelector } from 'react-redux';
 import EditIcon from "@mui/icons-material/Edit";
 import EditUserDialog from "../components/Changerole";
 import {
@@ -15,47 +15,17 @@ import {
   CircularProgress,
   IconButton,
 } from "@mui/material";
+import { fetchAllUsers } from "../redux/userSlice";
 
 const AllUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { allUsers, loading, error } = useSelector((state) => state.user);
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const fetchAllUsers = async () => {
-    try {
-      const token = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("access-token="))
-        ?.split("=")[1];
-
-      const response = await fetch(summaryapi.Allusers.url, {
-        method: summaryapi.Allusers.method,
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-
-      const data = await response.json();
-      if (data?.data) {
-        setUsers(data.data);
-      } else {
-        setUsers([]);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      setError("Failed to load users.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchAllUsers();
-  }, []);
+    dispatch(fetchAllUsers());
+  }, [dispatch]);
 
   const handleEditClick = (user) => {
     setSelectedUser(user);
@@ -65,6 +35,10 @@ const AllUsers = () => {
   const handleClose = () => {
     setOpen(false);
     setSelectedUser(null);
+  };
+
+  const handleRefresh = () => {
+    dispatch(fetchAllUsers());
   };
 
   return (
@@ -85,7 +59,7 @@ const AllUsers = () => {
         </Typography>
       )}
 
-      {!loading && !error && users.length > 0 ? (
+      {!loading && !error && allUsers && allUsers.length > 0 ? (
         <TableContainer
           component={Paper}
           sx={{
@@ -107,9 +81,9 @@ const AllUsers = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user, index) => (
+              {allUsers.map((user, index) => (
                 <TableRow
-                  key={user.id || index}
+                  key={user._id || index}
                   hover
                   sx={{ '&:hover': { bgcolor: 'action.hover' } }}
                 >
@@ -140,7 +114,7 @@ const AllUsers = () => {
           open={open}
           handleClose={handleClose}
           user={selectedUser}
-          fetchAllUsers={fetchAllUsers}
+          onUpdate={handleRefresh}
         />
       )}
     </Box>
