@@ -1,4 +1,5 @@
 const userModel = require("../models/userModel");
+const redisClient = require("../config/redis");
 
 async function updateUser(req, res) {
     try {
@@ -38,6 +39,17 @@ async function updateUser(req, res) {
                 error: true,
                 success: false,
             });
+        }
+
+        // Invalidate user cache
+        if (redisClient) {
+            try {
+                await redisClient.del(`user:${id}`);
+                await redisClient.del("users:all");
+                console.log("✓ Cache cleared: user data");
+            } catch (cacheError) {
+                console.warn("Cache invalidation warning:", cacheError.message);
+            }
         }
 
         res.json({

@@ -1,4 +1,4 @@
-// const { redisClient } = require("../config/redis");
+const redisClient = require("../config/redis");
 const uploadproductPermission = require("../middleware/permission");
 const productModel = require("../models/product");
 
@@ -9,16 +9,8 @@ async function addproduct(req, res) {
       throw new Error("Permission denied");
     }
     const { name, brandName, category, description, price, image } = req.body;
-    //  let productImage = [];
-    // if (image) {
-    //   productImage.push(image.path);
-    // } else if (req.files) {
-    //   req.files.forEach((file) => {
-    //     productImage.push(file.path);
-    //   });
-    // }
 
-     const productImage = Array.isArray(image) ? image : [image];
+    const productImage = Array.isArray(image) ? image : [image];
     const newProduct = new productModel({
       name,
       brandName,
@@ -29,6 +21,16 @@ async function addproduct(req, res) {
     });
 
     const savedProduct = await newProduct.save();
+
+    // Invalidate cache
+    if (redisClient) {
+      try {
+        await redisClient.del("products:all");
+        console.log("✓ Cache cleared: products:all");
+      } catch (cacheError) {
+        console.warn("Cache invalidation warning:", cacheError.message);
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -47,16 +49,36 @@ async function addproduct(req, res) {
 async function getAllproduct(req, res) {
   try {
     const cachekey = "products:all";
-    const cached = await redisClient.get(cachekey);
-      if (cached) {
-      return res.status(200).json({
-        success: true,
-        message: "Products fetched from cache",
-        data: JSON.parse(cached),
-      });
+    
+    // Try to get from cache
+    if (redisClient) {
+      try {
+        const cached = await redisClient.get(cachekey);
+        if (cached) {
+          console.log("✓ Products fetched from cache");
+          return res.status(200).json({
+            success: true,
+            message: "Products fetched from cache",
+            data: JSON.parse(cached),
+          });
+        }
+      } catch (cacheError) {
+        console.warn("Cache retrieval warning:", cacheError.message);
+      }
     }
-    const product = await productModel.find().sort({ createdAt: -1});
-    await redisClient.set(cachekey, JSON.stringify(product), "EX", 300);
+
+    const product = await productModel.find().sort({ createdAt: -1 });
+    
+    // Set cache
+    if (redisClient) {
+      try {
+        await redisClient.setEx(cachekey, 300, JSON.stringify(product));
+        console.log("✓ Products cached for 5 minutes");
+      } catch (cacheError) {
+        console.warn("Cache storage warning:", cacheError.message);
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "All products fetched successfully",
@@ -70,6 +92,7 @@ async function getAllproduct(req, res) {
     });
   }
 }
+
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -80,6 +103,16 @@ const deleteProduct = async (req, res) => {
         success: false,
         message: "Product not found",
       });
+    }
+
+    // Invalidate cache
+    if (redisClient) {
+      try {
+        await redisClient.del("products:all");
+        console.log("✓ Cache cleared: products:all");
+      } catch (cacheError) {
+        console.warn("Cache invalidation warning:", cacheError.message);
+      }
     }
 
     res.status(200).json({
@@ -93,7 +126,7 @@ const deleteProduct = async (req, res) => {
       error: error.message,
     });
   }
-}
+};
 
 const updateProduct = async (req, res) => {
   try {
@@ -110,6 +143,16 @@ const updateProduct = async (req, res) => {
       });
     }
 
+    // Invalidate cache
+    if (redisClient) {
+      try {
+        await redisClient.del("products:all");
+        console.log("✓ Cache cleared: products:all");
+      } catch (cacheError) {
+        console.warn("Cache invalidation warning:", cacheError.message);
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Product updated successfully",
@@ -123,17 +166,47 @@ const updateProduct = async (req, res) => {
     });
   }
 };
+
 const getCategoryProduct = async (req, res) => {
   try {
-    const productCategories = await productModel.distinct("category");
+    const cacheKey = "products:categories";
 
+    // Try to get from cache
+    if (redisClient) {
+      try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+          console.log("✓ Categories fetched from cache");
+          return res.json({
+            message: "Products by category",
+            data: JSON.parse(cached),
+            success: true,
+            error: false,
+          });
+        }
+      } catch (cacheError) {
+        console.warn("Cache retrieval warning:", cacheError.message);
+      }
+    }
+
+    const productCategories = await productModel.distinct("category");
     const productByCategory = [];
 
     for (const category of productCategories) {
       const product = await productModel.findOne({ category });
-        if(product) {
-      productByCategory.push(product);
+      if (product) {
+        productByCategory.push(product);
+      }
     }
+
+    // Set cache
+    if (redisClient) {
+      try {
+        await redisClient.setEx(cacheKey, 600, JSON.stringify(productByCategory));
+        console.log("✓ Categories cached for 10 minutes");
+      } catch (cacheError) {
+        console.warn("Cache storage warning:", cacheError.message);
+      }
     }
 
     res.json({
@@ -151,5 +224,4 @@ const getCategoryProduct = async (req, res) => {
   }
 };
 
-
-module.exports = {addproduct, getAllproduct, deleteProduct, updateProduct,getCategoryProduct};
+module.exports = { addproduct, getAllproduct, deleteProduct, updateProduct, getCategoryProduct };
