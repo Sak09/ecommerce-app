@@ -41,11 +41,12 @@ export const loginUser = createAsyncThunk(
         body: JSON.stringify(credentials),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        throw new Error(data.message || `Error: ${response.statusText}`);
       }
 
-      const data = await response.json();
       return data;
     } catch (error) {
       return rejectWithValue(error.message);
