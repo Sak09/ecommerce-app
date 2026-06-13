@@ -1,24 +1,51 @@
-const Cart = require("../models/Cart");
+const Cart = require("../models/cart");
+const productModel = require("../models/product");
 
 exports.addToCart = async (req, res) => {
   try {
     const { productId } = req.body;
-    const userId = req.user.id; // from auth middleware
+    const userId = req.userId;
 
-    // Check if already in cart
-    const existingItem = await Cart.findOne({ userId, productId });
-
-    if (existingItem) {
-      return res.status(400).json({
+    if (!userId) {
+      return res.status(401).json({
         success: false,
-        message: "Product already in cart",
+        message: "Please login again",
       });
     }
 
-    const cartItem = await Cart.create({
+    if (!productId) {
+      return res.status(400).json({
+        success: false,
+        message: "Product ID is required",
+      });
+    }
+
+    const product = await productModel.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    let cartItem = await Cart.findOne({ userId, productId }).populate("productId");
+
+    if (cartItem) {
+      return res.status(200).json({
+        success: true,
+        alreadyInCart: true,
+        message: "Product is already in your cart",
+        data: cartItem,
+      });
+    }
+
+    cartItem = await Cart.create({
       userId,
       productId,
+      quantity: 1,
     });
+
+    await cartItem.populate("productId");
 
     res.status(201).json({
       success: true,
@@ -32,12 +59,21 @@ exports.addToCart = async (req, res) => {
     });
   }
 };
+
 exports.getCart = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login again",
+      });
+    }
 
     const cartItems = await Cart.find({ userId })
-      .populate("productId");
+      .populate("productId")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -50,10 +86,18 @@ exports.getCart = async (req, res) => {
     });
   }
 };
+
 exports.deleteFromCart = async (req, res) => {
   try {
     const { productId } = req.params;
-    const userId = req.user.id;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login again",
+      });
+    }
 
     const deletedItem = await Cart.findOneAndDelete({
       userId,
@@ -78,5 +122,3 @@ exports.deleteFromCart = async (req, res) => {
     });
   }
 };
-
-

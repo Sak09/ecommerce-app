@@ -1,75 +1,148 @@
 import React, { useEffect } from "react";
-import { Link, Outlet } from "react-router-dom";
-import { useDispatch, useSelector } from 'react-redux';
-import { Box, Grid2, Paper, Avatar, Typography, Button, Stack, CircularProgress } from "@mui/material";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Avatar,
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
+import CategoryIcon from "@mui/icons-material/Category";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import GroupIcon from "@mui/icons-material/Group";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import ProductCategory from "../helpers/productCtegory";
 import { fetchUserDetails } from "../redux/userSlice";
+
+const navItems = [
+  { label: "Dashboard", to: "/admin-panel", icon: <DashboardIcon fontSize="small" />, end: true },
+  { label: "Category Products", to: "/admin-panel/categories", icon: <CategoryIcon fontSize="small" /> },
+  { label: "Product Management", to: "/admin-panel/all-products", icon: <Inventory2Icon fontSize="small" /> },
+  { label: "User Management", to: "/admin-panel/all-users", icon: <GroupIcon fontSize="small" /> },
+];
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { userDetail, loading } = useSelector((state) => state.user);
 
   useEffect(() => {
     dispatch(fetchUserDetails());
   }, [dispatch]);
 
-  return (
-    <Box sx={{ flexGrow: 1, py: 3 }}>
-      <Grid2 container spacing={3}>
-        <Grid2 item xs={12} md={4}>
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 3 }}>
-            {loading ? (
-              <Box display="flex" justifyContent="center" alignItems="center" minHeight={300}>
-                <CircularProgress />
-              </Box>
-            ) : userDetail ? (
-              <Box>
-                <Box display="flex" justifyContent="center" mb={3}>
-                  <Avatar
-                    src={`http://localhost:8000${userDetail.profilePic}`}
-                    alt="Profile"
-                    sx={{ width: 140, height: 140 }}
-                  />
-                </Box>
-                <Typography variant="h5" align="center" gutterBottom>
-                  {userDetail.name || "Admin"}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" align="center" mb={2}>
-                  {userDetail.email || "No email available"}
-                </Typography>
+  const profilePicUrl = userDetail?.profilePic ? `http://localhost:8000${userDetail.profilePic}` : "";
 
-                <Stack spacing={2} sx={{ mt: 2 }}>
+  return (
+    <Box sx={{ py: { xs: 1, md: 3 } }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "280px minmax(0, 1fr)" },
+          gap: 3,
+          alignItems: "start",
+        }}
+      >
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2.5,
+            borderRadius: 3,
+            border: "1px solid rgba(15, 23, 42, 0.08)",
+            position: { md: "sticky" },
+            top: { md: 112 },
+          }}
+        >
+          {loading && !userDetail ? (
+            <Box display="flex" justifyContent="center" py={5}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Stack spacing={2.5}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Avatar src={profilePicUrl} sx={{ width: 54, height: 54, bgcolor: "primary.main" }} />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 900 }} noWrap>
+                    {userDetail?.name || "Admin"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" noWrap>
+                    {userDetail?.email || "Admin portal"}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Divider />
+
+              <Stack spacing={0.75}>
+                {navItems.map((item) => (
                   <Button
-                    component={Link}
-                    to="all-users"
-                    variant="outlined"
+                    key={item.label}
+                    component={NavLink}
+                    to={item.to}
+                    end={item.end}
+                    startIcon={item.icon}
                     fullWidth
-                    sx={{ textTransform: 'none' }}
+                    sx={{
+                      justifyContent: "flex-start",
+                      textTransform: "none",
+                      borderRadius: 2,
+                      fontWeight: 800,
+                      color: "text.primary",
+                      "&.active": {
+                        bgcolor: "primary.main",
+                        color: "primary.contrastText",
+                      },
+                      "&.active:hover": {
+                        bgcolor: "primary.dark",
+                      },
+                    }}
                   >
-                    View All Users
+                    {item.label}
                   </Button>
-                  <Button
-                    component={Link}
-                    to="all-products"
-                    variant="contained"
-                    fullWidth
-                    sx={{ textTransform: 'none' }}
-                  >
-                    View All Products
-                  </Button>
+                ))}
+              </Stack>
+
+              <Divider />
+
+              <Box>
+                <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 900 }}>
+                  Categories
+                </Typography>
+                <Stack spacing={0.75} sx={{ mt: 1, maxHeight: { md: 260 }, overflowY: { md: "auto" } }}>
+                  {ProductCategory.map((category) => (
+                    <Button
+                      key={category}
+                      onClick={() => navigate(`/admin-panel/categories?category=${encodeURIComponent(category)}`)}
+                      startIcon={<StorefrontIcon fontSize="small" />}
+                      sx={{
+                        justifyContent: "flex-start",
+                        textTransform: "none",
+                        color: "text.primary",
+                        borderRadius: 2,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {category}
+                    </Button>
+                  ))}
                 </Stack>
               </Box>
-            ) : (
-              <Typography align="center">No user data available</Typography>
-            )}
-          </Paper>
-        </Grid2>
 
-        <Grid2 item xs={12} md={8}>
-          <Paper elevation={0} sx={{ p: 2, minHeight: 360, borderRadius: 3, bgcolor: 'background.default' }}>
-            <Outlet />
-          </Paper>
-        </Grid2>
-      </Grid2>
+              <Button component={Link} to="/shop" variant="outlined" startIcon={<StorefrontIcon />}>
+                View Store
+              </Button>
+            </Stack>
+          )}
+        </Paper>
+
+        <Box sx={{ minWidth: 0 }}>
+          <Outlet />
+        </Box>
+      </Box>
     </Box>
   );
 };

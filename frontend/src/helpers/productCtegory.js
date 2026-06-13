@@ -1,14 +1,14 @@
 const productCategory = [
-    'Airpodes',
-    'Camera',
-    'Earphones',
+    'Kitchen Appliances',
+    'Beauty Products',
     'Mobiles',
-    'Mouse',
+    'Electronics',
+    'Home Appliances',
+    'Audio',
+    'Cameras',
+    'Computer Accessories',
+    'Personal Care',
     'Printers',
-    'Proccessor',
-    'Refrigerator',
-    'Speakers',
-    'Trimers',
-    'Telivisions'
+    'Televisions'
 ]
 export default productCategory;

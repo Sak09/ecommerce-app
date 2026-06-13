@@ -4,7 +4,7 @@ const ViewProductDialog = ({ open, onClose, product }) => {
   if (!product) return null;
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} disableScrollLock>
       <DialogTitle>Product Details</DialogTitle>
       <DialogContent>
         <img

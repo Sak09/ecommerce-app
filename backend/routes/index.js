@@ -12,6 +12,7 @@ const logoutController = require('../controller/logoutController');
 const Allusers = require('../controller/allUsers');
 const updateUser = require('../controller/updateUser');
 const { addproduct, getAllproduct, deleteProduct, updateProduct, getCategoryProduct } = require('../controller/productController');
+const { addToCart, getCart, deleteFromCart } = require('../controller/cartController');
 const { forgotPasswordController, resetPasswordController } = require('../controller/forgotPasswordController');
 
 
@@ -42,4 +43,7 @@ router.post("/upload", upload.single("file"), uploadController)
 router.post("/product", auth, addproduct);
 router.get("/all-products",getAllproduct)
 router.get("/all-category", getCategoryProduct);
+router.post("/cart/add", auth, addToCart);
+router.get("/cart", auth, getCart);
+router.delete("/cart/remove/:productId", auth, deleteFromCart);
 module.exports = router;

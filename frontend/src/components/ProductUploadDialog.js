@@ -22,7 +22,8 @@ import { toast } from "react-toastify";
 const ProductUploadDialog = ({
   open,
   onClose,
-  Productlist
+  Productlist,
+  onSuccess,
 }) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -119,7 +120,7 @@ const ProductUploadDialog = ({
           description: "",
           image: [],
         });
-        await Productlist();
+        await (Productlist || onSuccess)?.();
         onClose(); 
       } else {
         toast.error(result.message || "Failed to upload product.");

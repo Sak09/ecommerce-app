@@ -105,7 +105,7 @@ const EditProductDialog = ({
 };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} disableScrollLock>
       <DialogTitle>Edit Product</DialogTitle>
       <DialogContent>
         <TextField

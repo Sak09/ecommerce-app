@@ -1,28 +1,28 @@
-exports.deleteFromCart = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const userId = req.user.id;
+const mongoose = require("mongoose");
 
-    const deletedItem = await Cart.findOneAndDelete({
-      userId,
-      productId,
-    });
-
-    if (!deletedItem) {
-      return res.status(404).json({
-        success: false,
-        message: "Item not found in cart",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Product removed from cart",
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+const cartSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "product",
+      required: true,
+    },
+    quantity: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+  },
+  {
+    timestamps: true,
   }
-};
+);
+
+cartSchema.index({ userId: 1, productId: 1 }, { unique: true });
+
+module.exports = mongoose.model("cart", cartSchema);

@@ -1,15 +1,29 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import summaryapi from '../common';
 
+const getToken = () => document?.cookie
+  .split('; ')
+  .find(row => row.startsWith('access-token='))
+  ?.split('=')[1];
+
+const handleAuthExpired = (response, data) => {
+  if (response.status === 401) {
+    document.cookie = 'access-token=; Max-Age=0; path=/';
+    return {
+      authExpired: true,
+      message: data?.message || 'Session expired. Please login again.',
+    };
+  }
+
+  return data?.message || `Error: ${response.statusText}`;
+};
+
 // Async thunk for fetching cart
 export const fetchCart = createAsyncThunk(
   'cart/fetchCart',
   async (_, { rejectWithValue }) => {
     try {
-      const token = document?.cookie
-        .split('; ')
-        .find(row => row.startsWith('access-token='))
-        ?.split('=')[1];
+      const token = getToken();
 
       const response = await fetch(summaryapi.getCart.url, {
         method: summaryapi.getCart.method,
@@ -20,11 +34,12 @@ export const fetchCart = createAsyncThunk(
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        return rejectWithValue(handleAuthExpired(response, data));
       }
 
-      const data = await response.json();
       return data;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -37,10 +52,7 @@ export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async (productId, { rejectWithValue }) => {
     try {
-      const token = document?.cookie
-        .split('; ')
-        .find(row => row.startsWith('access-token='))
-        ?.split('=')[1];
+      const token = getToken();
 
       const response = await fetch(summaryapi.addToCart.url, {
         method: summaryapi.addToCart.method,
@@ -52,11 +64,12 @@ export const addToCart = createAsyncThunk(
         body: JSON.stringify({ productId }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        return rejectWithValue(handleAuthExpired(response, data));
       }
 
-      const data = await response.json();
       return data;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -69,26 +82,23 @@ export const removeFromCart = createAsyncThunk(
   'cart/removeFromCart',
   async (productId, { rejectWithValue }) => {
     try {
-      const token = document?.cookie
-        .split('; ')
-        .find(row => row.startsWith('access-token='))
-        ?.split('=')[1];
+      const token = getToken();
 
-      const response = await fetch(summaryapi.removeFromCart.url, {
+      const response = await fetch(`${summaryapi.removeFromCart.url}/${productId}`, {
         method: summaryapi.removeFromCart.method,
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           Authorization: token || '',
         },
-        body: JSON.stringify({ productId }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+        return rejectWithValue(handleAuthExpired(response, data));
       }
 
-      const data = await response.json();
       return { ...data, removedProductId: productId };
     } catch (error) {
       return rejectWithValue(error.message);
@@ -128,7 +138,11 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.payload;
+        if (action.payload?.authExpired) {
+          state.cartItems = [];
+          state.cartCount = 0;
+        }
       })
       // Add to cart
       .addCase(addToCart.pending, (state) => {
@@ -138,13 +152,16 @@ const cartSlice = createSlice({
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload?.data) {
-          state.cartItems.push(action.payload.data);
+          const exists = state.cartItems.some(item => item.productId?._id === action.payload.data.productId?._id);
+          if (!exists) {
+            state.cartItems.push(action.payload.data);
+          }
           state.cartCount = state.cartItems.length;
         }
       })
       .addCase(addToCart.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.payload;
       })
       // Remove from cart
       .addCase(removeFromCart.pending, (state) => {
@@ -154,12 +171,12 @@ const cartSlice = createSlice({
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.loading = false;
         const removedId = action.payload.removedProductId;
-        state.cartItems = state.cartItems.filter(item => item.productId !== removedId);
+        state.cartItems = state.cartItems.filter(item => item.productId?._id !== removedId && item.productId !== removedId);
         state.cartCount = state.cartItems.length;
       })
       .addCase(removeFromCart.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.payload;
       });
   },
 });

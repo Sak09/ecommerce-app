@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Paper,
@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import Grid2 from "@mui/material/Grid2";
 import Person2Icon from "@mui/icons-material/Person2";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { fetchUserDetails, logoutUser } from "../redux/userSlice";
@@ -30,17 +31,32 @@ const ROLE = {
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { userDetail, isAuthenticated } = useSelector((state) => state.user);
   const { cartCount } = useSelector((state) => state.cart);
   const [anchorEl, setAnchorEl] = useState(null);
   const isMenuOpen = Boolean(anchorEl);
 
   useEffect(() => {
-    dispatch(fetchUserDetails());
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("access-token="))
+      ?.split("=")[1];
+
+    dispatch(fetchUserDetails())
+      .unwrap()
+      .catch(() => {
+        const authPages = ["/login", "/sign-up", "/forgot-password"];
+        if (token && !authPages.includes(location.pathname)) {
+          document.cookie = "access-token=; Max-Age=0; path=/";
+          navigate("/login");
+        }
+      });
+
     if (isAuthenticated) {
       dispatch(fetchCart());
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, location.pathname, navigate]);
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -56,14 +72,16 @@ const Header = () => {
     navigate("/login");
   };
 
-  const handleAdminNavigate = () => {
+  const handlePortalNavigate = () => {
     handleClose();
-    navigate("/admin-panel");
+    const role = userDetail?.role?.toUpperCase();
+    navigate(role === ROLE.ADMIN ? "/admin-panel" : "/home");
   };
 
   const profilePicUrl = userDetail?.profilePic
     ? `http://localhost:8000${userDetail.profilePic}`
     : null;
+  const userRole = userDetail?.role?.toUpperCase();
 
   return (
     <Paper
@@ -139,14 +157,18 @@ const Header = () => {
                   onClose={handleClose}
                   disableScrollLock
                 >
-                  {userDetail?.role === ROLE.ADMIN && (
-                    <MenuItem onClick={handleAdminNavigate}>
+                  <MenuItem component={Link} to="/profile" onClick={handleClose}>
+                    <AccountCircleIcon fontSize="small" sx={{ mr: 1 }} />
+                    Profile
+                  </MenuItem>
+                  {userRole === ROLE.ADMIN && (
+                    <MenuItem onClick={handlePortalNavigate}>
                       Admin Panel
                     </MenuItem>
                   )}
-                  {userDetail?.role === 'general' && (
-                    <MenuItem component={Link} to="/shop" onClick={handleClose}>
-                      Shop
+                  {userRole === ROLE.GENERAL && (
+                    <MenuItem onClick={handlePortalNavigate}>
+                      User Portal
                     </MenuItem>
                   )}
                   <MenuItem onClick={handleLogout}>

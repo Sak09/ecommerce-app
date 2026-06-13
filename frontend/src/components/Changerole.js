@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from "@mui/material";
 import summaryapi from "../common";
 
-const EditUserDialog = ({ open, handleClose, user, fetchAllUsers }) => {
+const EditUserDialog = ({ open, handleClose, user, fetchAllUsers, onUpdate }) => {
   const [updatedUser, setUpdatedUser] = useState(user);
 
 
@@ -31,7 +31,7 @@ const EditUserDialog = ({ open, handleClose, user, fetchAllUsers }) => {
       const data = await response.json();
       if (data.success) {
         alert("User updated successfully!");
-        fetchAllUsers();
+        (fetchAllUsers || onUpdate)?.();
         handleClose(); 
       } else {
         alert("Failed to update user!");

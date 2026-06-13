@@ -78,6 +78,10 @@ export const fetchUserDetails = createAsyncThunk(
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          document.cookie = 'access-token=; Max-Age=0; path=/';
+          throw new Error('Session expired. Please login again.');
+        }
         throw new Error(`Error: ${response.statusText}`);
       }
 
@@ -94,12 +98,17 @@ export const updateUser = createAsyncThunk(
   'user/updateUser',
   async (userData, { rejectWithValue }) => {
     try {
+      const userId = userData?._id || userData?.id;
       const token = document?.cookie
         .split('; ')
         .find(row => row.startsWith('access-token='))
         ?.split('=')[1];
 
-      const response = await fetch(summaryapi.updateuser.url, {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
+      const response = await fetch(`${summaryapi.updateuser.url}/${userId}`, {
         method: summaryapi.updateuser.method,
         credentials: 'include',
         headers: {

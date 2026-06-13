@@ -5,7 +5,7 @@ async function updateUser(req, res) {
     try {
         const { id } = req.params; 
         const sessionUser = req.userId; 
-        const { email, name, role } = req.body;
+        const { email, name, role, phone, address } = req.body;
 
         // Ensure userId exists
         if (!id) {
@@ -30,6 +30,8 @@ async function updateUser(req, res) {
         if (email) payload.email = email;
         if (name) payload.name = name;
         if (role) payload.role = role;
+        if (phone !== undefined) payload.phone = phone;
+        if (address) payload.address = address;
 
         const updatedUser = await userModel.findByIdAndUpdate(id, payload, { new: true });
 
