@@ -13,12 +13,12 @@ app.use(cors({
     origin : process.env.FRONTEND_URL,
     credentials : true
 }))
+app.use(cookieParser())
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get('/', (req, res) => {
     res.send('Welcome to the API!');
 });
 app.use('/api',router)
-app.use(cookieParser())
 const PORT = process.env.PORT || 8000;
 connectDB()
     .then(() => {

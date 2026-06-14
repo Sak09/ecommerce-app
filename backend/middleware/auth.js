@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 
 async function authToken(req,res,next){
     try{
-       const token = req.headers?.authorization;
+       const token = req.headers?.authorization || req.cookies?.token || req.cookies?.["access-token"];
         if(!token){
             return res.status(401).json({
                 message : "Please Login...!",

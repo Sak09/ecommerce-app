@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import summaryapi from '../common';
+import { apiRequest, clearAuthToken } from '../utils/apiClient';
 
 // Async thunk for user signup
 export const signupUser = createAsyncThunk(
@@ -32,24 +33,12 @@ export const loginUser = createAsyncThunk(
   'user/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await fetch(summaryapi.login.url, {
+      return await apiRequest(summaryapi.login.url, {
         method: summaryapi.login.method,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(credentials),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Error: ${response.statusText}`);
-      }
-
-      return data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error);
     }
   }
 );
@@ -59,36 +48,12 @@ export const fetchUserDetails = createAsyncThunk(
   'user/fetchUserDetails',
   async (_, { rejectWithValue }) => {
     try {
-      const token = document?.cookie
-        .split('; ')
-        .find(row => row.startsWith('access-token='))
-        ?.split('=')[1];
-
-      if (!token) {
-        return null;
-      }
-
-      const response = await fetch(summaryapi.current_user.url, {
+      return await apiRequest(summaryapi.current_user.url, {
         method: summaryapi.current_user.method,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token,
-        },
       });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          document.cookie = 'access-token=; Max-Age=0; path=/';
-          throw new Error('Session expired. Please login again.');
-        }
-        throw new Error(`Error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      if (error.status === 401) return rejectWithValue(null);
+      return rejectWithValue(error);
     }
   }
 );
@@ -99,33 +64,17 @@ export const updateUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const userId = userData?._id || userData?.id;
-      const token = document?.cookie
-        .split('; ')
-        .find(row => row.startsWith('access-token='))
-        ?.split('=')[1];
 
       if (!userId) {
         throw new Error('User ID is required');
       }
 
-      const response = await fetch(`${summaryapi.updateuser.url}/${userId}`, {
+      return await apiRequest(`${summaryapi.updateuser.url}/${userId}`, {
         method: summaryapi.updateuser.method,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token || '',
-        },
         body: JSON.stringify(userData),
       });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || error);
     }
   }
 );
@@ -135,28 +84,11 @@ export const fetchAllUsers = createAsyncThunk(
   'user/fetchAllUsers',
   async (_, { rejectWithValue }) => {
     try {
-      const token = document?.cookie
-        .split('; ')
-        .find(row => row.startsWith('access-token='))
-        ?.split('=')[1];
-
-      const response = await fetch(summaryapi.Allusers.url, {
+      return await apiRequest(summaryapi.Allusers.url, {
         method: summaryapi.Allusers.method,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token || '',
-        },
       });
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || error);
     }
   }
 );
@@ -173,6 +105,7 @@ export const logoutUser = createAsyncThunk(
       const data = await response.json();
 
       if (data.success) {
+        clearAuthToken();
         return null;
       }
       throw new Error('Logout failed');
@@ -310,12 +243,12 @@ const userSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.userDetail = action.payload?.data;
+        state.userDetail = action.payload?.data?.user || action.payload?.data || null;
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.payload;
         state.isAuthenticated = false;
       })
       // Fetch user details
@@ -330,7 +263,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchUserDetails.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || action.payload;
         state.userDetail = null;
         state.isAuthenticated = false;
       })

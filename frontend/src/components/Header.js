@@ -20,7 +20,8 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SearchIcon from "@mui/icons-material/Search";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { fetchUserDetails, logoutUser } from "../redux/userSlice";
-import { fetchCart } from "../redux/cartSlice";
+import { clearCart, fetchCart } from "../redux/cartSlice";
+import { clearAuthToken, getAuthToken } from "../utils/apiClient";
 import Logo from "./Logo";
 
 const ROLE = {
@@ -38,17 +39,13 @@ const Header = () => {
   const isMenuOpen = Boolean(anchorEl);
 
   useEffect(() => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("access-token="))
-      ?.split("=")[1];
-
     dispatch(fetchUserDetails())
       .unwrap()
       .catch(() => {
         const authPages = ["/login", "/sign-up", "/forgot-password"];
+        const token = getAuthToken();
         if (token && !authPages.includes(location.pathname)) {
-          document.cookie = "access-token=; Max-Age=0; path=/";
+          clearAuthToken();
           navigate("/login");
         }
       });
@@ -68,6 +65,8 @@ const Header = () => {
 
   const handleLogout = () => {
     handleClose();
+    clearAuthToken();
+    dispatch(clearCart());
     dispatch(logoutUser());
     navigate("/login");
   };
